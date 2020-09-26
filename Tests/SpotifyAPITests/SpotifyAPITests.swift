@@ -6,7 +6,10 @@ final class SpotifyAPITests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(SpotifyAPI().text, "Hello, World!")
+        let manager = SpotifyAPI.shared
+        manager.authorize {result in
+            XCTAssertEqual(result, true)
+        }
     }
 
     static var allTests = [

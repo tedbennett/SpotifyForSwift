@@ -1,3 +1,3 @@
 # SpotifyAPI
 
-A description of this package.
+Wrapper for the Spotify Music API written in Swift
