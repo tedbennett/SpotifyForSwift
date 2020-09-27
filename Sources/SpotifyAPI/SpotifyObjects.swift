@@ -15,7 +15,7 @@ struct Album: Codable {
     var externalIds: ExternalId
     var externalUrls: ExternalUrl
     var genres: [String]
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var label: String
@@ -34,7 +34,7 @@ struct AlbumSimplified: Codable {
     var artists: [ArtistSimplified]
     var availableMarkets: [String]
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var name: String
@@ -46,7 +46,7 @@ struct Artist: Codable {
     var externalUrls: ExternalUrl
     var followers: Followers
     var genres: [String]
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var name: String
@@ -57,7 +57,7 @@ struct Artist: Codable {
 
 struct ArtistSimplified: Codable {
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var name: String
     var type: String
@@ -86,7 +86,7 @@ struct AudioFeatures: Codable {
 }
 
 struct Category: Codable {
-    var href: String
+    var href: URL?
     var icons: [Image]
     var id: String
     var name: String
@@ -94,7 +94,7 @@ struct Category: Codable {
 
 struct Context: Codable {
     var type: String
-    var href: String
+    var href: URL?
     var externalUrls: ExternalUrl
     var uri: String
 }
@@ -140,7 +140,7 @@ struct Episode: Codable {
     var durationMs: Int
     var explicit: Bool
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var isExternallyHosted: Bool
@@ -162,7 +162,7 @@ struct EpisodeSimplified: Codable {
     var durationMs: Int
     var explicit: Bool
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var isExternallyHosted: Bool
@@ -220,7 +220,7 @@ struct ExternalUrl: Codable {
 }
 
 struct Followers: Codable {
-    var href: String
+    var href: URL??
     var total: Int
 }
 
@@ -231,7 +231,7 @@ struct Image: Codable {
 }
 
 struct Paging<Object: Codable>: Codable {
-    var href: String
+    var href: URL?
     var items: [Object]
     var limit: Int
     var next: String
@@ -241,7 +241,7 @@ struct Paging<Object: Codable>: Codable {
 }
 
 struct PagingCursor<Object: Codable>: Codable {
-    var href: String
+    var href: URL?
     var items: [Object]
     var limit: Int
     var next: String
@@ -258,7 +258,7 @@ struct PlayHistory: Codable {
 struct Playlist: Codable {
     var collaborative: Bool
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var name: String
@@ -292,7 +292,7 @@ struct Recommendations: Codable {
 struct RecommendationsSeed: Codable {
     var afterFilteringSize: Int
     var afterRelinkingSize: Int
-    var href: String
+    var href: URL?
     var id: String
     var initialPoolSize: Int
     var type: String
@@ -325,7 +325,7 @@ struct Show: Codable {
     var explicit: Bool
     var episodes: Paging<EpisodeSimplified>
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var isExternallyHosted: Bool
@@ -343,7 +343,7 @@ struct ShowSimplified: Codable {
     var description: String
     var explicit: Bool
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var isExternallyHosted: Bool
@@ -364,7 +364,7 @@ struct Track: Codable {
     var explicit: Bool
     var externalIds: ExternalId
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var isPlayable: Bool
     var linkedFrom: TrackLink
@@ -383,7 +383,7 @@ struct TrackSimplified: Codable {
     var durationMs: Int
     var explicit: Bool
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var isPlayable: Bool
     var linkedFrom: TrackLink
@@ -396,7 +396,7 @@ struct TrackSimplified: Codable {
 
 struct TrackLink: Codable {
     var externalUrls: ExternalUrl
-    var href: String
+    var href: URL?
     var id: String
     var type: String
     var uri: String
@@ -408,7 +408,7 @@ struct UserPrivate: Codable {
     var email: String
     var externalUrls: ExternalUrl
     var followers: Followers
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var product: String
@@ -420,7 +420,7 @@ struct UserPublic: Codable {
     var displayName: String
     var externalUrls: ExternalUrl
     var followers: Followers
-    var href: String
+    var href: URL?
     var id: String
     var images: [Image]
     var type: String

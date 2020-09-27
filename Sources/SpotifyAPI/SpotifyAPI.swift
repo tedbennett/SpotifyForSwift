@@ -1,43 +1,71 @@
 import Alamofire
 import OAuth2
+import Foundation
 
-class SpotifyAPI {
-    var authClient = OAuth2CodeGrant(settings: [
-        "client_id": "e164f018712e4c6ba906a595591ff010",
-        "authorize_uri": "https://accounts.spotify.com/authorize",
-        "token_uri": "https://accounts.spotify.com/api/token",
-        "redirect_uris": ["music-manager://oauth-callback/"],
-        "use_pkce": true,
-        "scope": "playlist-read-private%20playlist-modify-private",
-        "keychain": true,
-    ] as OAuth2JSON)
+public class SpotifyAPI {
+    var authClient: OAuth2CodeGrant?
     
-    lazy var loader = OAuth2DataLoader(oauth2: authClient)
-    
-    static let shared = SpotifyAPI()
+    static let manager = SpotifyAPI()
     
     private init() {}
-
+    
+    func initialize(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true) {
+        authClient = OAuth2CodeGrant(settings: [
+            "client_id": clientId,
+            "authorize_uri": "https://accounts.spotify.com/authorize",
+            "token_uri": "https://accounts.spotify.com/api/token",
+            "redirect_uris": redirectUris,
+            "use_pkce": usePkce,
+            "scope": scopes.map{scope in scope.rawValue}.joined(separator: "%20"),
+            "keychain": useKeychain,
+        ] as OAuth2JSON)
+    }
+    
     func authorize(completion: @escaping (Bool) -> Void) {
-        self.authClient.forgetTokens()
-        authClient.authorize(callback: {authParameters, error in
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
+        authClient!.forgetTokens()
+        authClient!.authorize(callback: {authParameters, error in
             if authParameters != nil {
                 completion(true)
             }
             else {
                 print("Authorization was canceled or went wrong: \(String(describing: error))")
-                // error will not be nil
                 if error?.description == "Refresh token revoked" {
-                    self.authClient.forgetTokens()
+                    self.authClient!.forgetTokens()
                 }
                 completion(false)
             }
-            
         })
-        
     }
     
-    func decode() {
+    func getUser(completion: @escaping (UserPublic?, String?) -> Void) {
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
+        let url = baseUrl.appendingPathComponent(Endpoints[.me])
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(authClient!.accessToken!)"
+        ]
+        
+        authClient!.authorize {_,_ in
+        AF.request(url, headers: headers)
+            .validate()
+            .response { response in
+                switch response.result {
+                    case .success(let data):
+                        do {
+                            let decoder = JSONDecoder()
+                            decoder.keyDecodingStrategy = .convertFromSnakeCase
+                            let decoded = try decoder.decode(UserPublic.self, from: data!)
+                            completion(decoded, nil)
+                            
+                        } catch {
+                            completion(nil, error.localizedDescription)
+                        }
+                        
+                    case .failure(let error):
+                        completion(nil, error.localizedDescription)
+                }
+            }
+        }
     }
 }
