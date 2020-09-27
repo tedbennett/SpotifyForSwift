@@ -9,7 +9,7 @@ import Foundation
 
 struct Album: Codable {
     var albumType: String
-    var artists: [Artist]
+    var artists: [ArtistSimplified]
     var availableMarkets: [String]
     var copyrights: [Copyright]
     var externalIds: ExternalId
@@ -18,7 +18,7 @@ struct Album: Codable {
     var href: URL?
     var id: String
     var images: [Image]
-    var label: String
+    var label: String?
     var name: String
     var popularity: Int
     var releaseDate: String
@@ -44,7 +44,7 @@ struct AlbumSimplified: Codable {
 
 struct Artist: Codable {
     var externalUrls: ExternalUrl
-    var followers: Followers
+    var followers: Followers?
     var genres: [String]
     var href: URL?
     var id: String
@@ -234,9 +234,9 @@ struct Paging<Object: Codable>: Codable {
     var href: URL?
     var items: [Object]
     var limit: Int
-    var next: String
+    var next: String?
     var offset: Int
-    var previous: String
+    var previous: String?
     var total: Int
 }
 
@@ -244,7 +244,7 @@ struct PagingCursor<Object: Codable>: Codable {
     var href: URL?
     var items: [Object]
     var limit: Int
-    var next: String
+    var next: String?
     var cursors: Cursor
     var total: Int
 }
@@ -385,8 +385,8 @@ struct TrackSimplified: Codable {
     var externalUrls: ExternalUrl
     var href: URL?
     var id: String
-    var isPlayable: Bool
-    var linkedFrom: TrackLink
+    var isPlayable: Bool?
+    var linkedFrom: TrackLink?
     var name: String
     var previewUrl: String
     var trackNumber: Int
