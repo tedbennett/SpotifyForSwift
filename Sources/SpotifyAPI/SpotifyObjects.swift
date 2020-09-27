@@ -31,7 +31,7 @@ struct Album: Codable {
 struct AlbumSimplified: Codable {
     var albumGroup: String?
     var albumType: String
-    var artists: [ArtistSimplified]
+    var artists: [ArtistSimplified]?
     var availableMarkets: [String]
     var externalUrls: ExternalUrl
     var href: URL?
@@ -220,14 +220,14 @@ struct ExternalUrl: Codable {
 }
 
 struct Followers: Codable {
-    var href: URL??
+    var href: URL?
     var total: Int
 }
 
 struct Image: Codable {
-    var height: Int
+    var height: Int?
     var url: String
-    var width: Int
+    var width: Int?
 }
 
 struct Paging<Object: Codable>: Codable {
@@ -271,9 +271,7 @@ struct Playlist: Codable {
 
     enum CodingKeys: String, CodingKey {
         case isPublic = "public"
-        case externalUrls = "external_urls"
-        case snapshotId = "snapshot_id"
-        case collaborative, href, id, images, name, owner, tracks, type, uri
+        case externalUrls, snapshotId, collaborative, href, id, images, name, owner, tracks, type, uri
     }
 }
 
@@ -356,8 +354,8 @@ struct ShowSimplified: Codable {
 }
 
 struct Track: Codable {
-    var album: [Album]
-    var artists: [Artist]
+    var album: AlbumSimplified
+    var artists: [ArtistSimplified]
     var availableMarkets: [String]
     var discNumber: Int
     var durationMs: Int
@@ -366,8 +364,8 @@ struct Track: Codable {
     var externalUrls: ExternalUrl
     var href: URL?
     var id: String
-    var isPlayable: Bool
-    var linkedFrom: TrackLink
+    var isPlayable: Bool?
+    var linkedFrom: TrackLink?
     var name: String
     var popularity: Int
     var previewUrl: String
@@ -417,12 +415,12 @@ struct UserPrivate: Codable {
 }
 
 struct UserPublic: Codable {
-    var displayName: String
+    var displayName: String?
     var externalUrls: ExternalUrl
-    var followers: Followers
+    var followers: Followers?
     var href: URL?
     var id: String
-    var images: [Image]
+    var images: [Image]?
     var type: String
     var uri: String
 }
