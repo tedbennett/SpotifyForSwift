@@ -85,7 +85,7 @@ struct AudioFeatures: Codable {
     var valence: Double
 }
 
-struct Category: Codable {
+struct CategoryObject: Codable {
     var href: URL?
     var icons: [Image]
     var id: String
@@ -160,19 +160,19 @@ struct EpisodeSimplified: Codable {
     var audioPreviewUrl: String
     var description: String
     var durationMs: Int
-    var explicit: Bool
+    var explicit: Bool?
     var externalUrls: ExternalUrl
     var href: URL?
     var id: String
     var images: [Image]
     var isExternallyHosted: Bool
-    var isPlayable: Bool
+    var isPlayable: Bool?
     var language: String
-    var languages: [String]
+    var languages: [String]?
     var name: String
     var releaseDate: String
     var releaseDatePrecision: String
-    var resumePoint: ResumePoint
+    var resumePoint: ResumePoint?
     var type: String
     var uri: String
 }
@@ -320,7 +320,7 @@ struct Show: Codable {
     var availableMarkets: [String]
     var copyrights: [Copyright]
     var description: String
-    var explicit: Bool
+    var explicit: Bool?
     var episodes: Paging<EpisodeSimplified>
     var externalUrls: ExternalUrl
     var href: URL?
