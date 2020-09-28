@@ -89,6 +89,51 @@ final class SpotifyAPITests: XCTestCase {
             XCTAssertNotNil(playlist)
             XCTAssertNil(error)
         }
+        
+        
+    }
+    func testGetTrack() {
+        let manager = SpotifyAPI.manager
+        
+        var track: Track?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getTrack(id: "2T4SAwloHxRAtpD2hgykdA") {
+            track = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotNil(track)
+            XCTAssertNil(error)
+        }
+    }
+    
+    func testGetAlbum() {
+        let manager = SpotifyAPI.manager
+        
+        var album: Album?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getAlbum(id: "386IqvSuljaZsMjwDGGdLj") {
+            album = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotNil(album)
+            XCTAssertNil(error)
+        }
     }
     
     

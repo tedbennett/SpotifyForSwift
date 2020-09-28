@@ -255,7 +255,7 @@ struct PlayHistory: Codable {
     var context: Context
 }
 
-struct Playlist: Codable {
+struct PlaylistSimplified: Codable {
     var collaborative: Bool
     var externalUrls: ExternalUrl
     var href: URL?
@@ -266,6 +266,26 @@ struct Playlist: Codable {
     var isPublic: Bool?
     var snapshotId: String
     var tracks: PlaylistTracks
+    var type: String
+    var uri: String
+    
+    enum CodingKeys: String, CodingKey {
+        case isPublic = "public"
+        case externalUrls, snapshotId, collaborative, href, id, images, name, owner, tracks, type, uri
+    }
+}
+
+struct Playlist: Codable {
+    var collaborative: Bool
+    var externalUrls: ExternalUrl
+    var href: URL?
+    var id: String
+    var images: [Image]
+    var name: String
+    var owner: UserPublic
+    var isPublic: Bool?
+    var snapshotId: String
+    var tracks: Paging<PlaylistTrack>
     var type: String
     var uri: String
 
@@ -373,7 +393,7 @@ struct Track: Codable {
     var linkedFrom: TrackLink?
     var name: String
     var popularity: Int
-    var previewUrl: String
+    var previewUrl: URL?
     var trackNumber: Int
     var type: String
     var uri: String

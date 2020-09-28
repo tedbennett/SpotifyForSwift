@@ -172,7 +172,6 @@ final class ObjectDecodingTests: XCTestCase {
         } catch {
             print("error: ", error)
         }
-        print(artist)
         XCTAssertNotNil(artist)
     }
     
