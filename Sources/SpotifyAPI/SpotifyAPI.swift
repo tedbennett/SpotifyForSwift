@@ -38,41 +38,57 @@ public class SpotifyAPI {
         })
     }
     
+    func request<Object: Codable>(url: URL, completion: @escaping (Object?, Error?) -> Void) {
+        var urlRequest = URLRequest(url: url)
+        urlRequest.setValue("Bearer \(self.authClient!.accessToken!)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
+            guard error == nil else {
+                completion(nil, error)
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, NSError(domain: "No data returned", code: 10, userInfo: nil))
+                return
+            }
+            
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            
+            do {
+                let decoded = try decoder.decode(SpotifyError.self, from: data)
+                completion(nil, NSError(domain: decoded.message, code: decoded.status, userInfo: nil))
+                return
+            } catch {}
+            
+            do {
+                let decoded = try decoder.decode(Object.self, from: data)
+                completion(decoded, nil)
+            } catch let parseError {
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                    print(json)
+                }
+                completion(nil, parseError)
+            }
+        }.resume()
+    }
+    
     func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
         authClient!.authorize { (_,_) in
             let url = baseUrl.appendingPathComponent(Endpoints[.me])
-            var request = URLRequest(url: url)
-            request.setValue("Bearer \(self.authClient!.accessToken!)", forHTTPHeaderField: "Authorization")
-            
-            URLSession.shared.dataTask(with: request) { (data, response, error) in
-                guard error == nil else {
-                    completion(nil, error)
-                    return
-                }
-                
-                guard let data = data else {
-                    completion(nil, NSError(domain: "No data returned", code: 10, userInfo: nil))
-                    return
-                }
-                
-                let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
-                
-                do {
-                    let decoded = try decoder.decode(SpotifyError.self, from: data)
-                    completion(nil, NSError(domain: decoded.message, code: decoded.status, userInfo: nil))
-                    return
-                } catch {}
-                
-                do {
-                    let decoded = try decoder.decode(UserPublic.self, from: data)
-                    completion(decoded, nil)
-                } catch let parseError {
-                    completion(nil, parseError)
-                }
-            }.resume()
+            self.request(url: url, completion: completion)
+        }
+    }
+    
+    func getPlaylist(id: String, completion: @escaping (Playlist?, Error?) -> Void) {
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
+        
+        authClient!.authorize { (_,_) in
+            let url = baseUrl.appendingPathComponent(Endpoints[.playlists]).appendingPathComponent(id)
+            self.request(url: url, completion: completion)
         }
     }
 }

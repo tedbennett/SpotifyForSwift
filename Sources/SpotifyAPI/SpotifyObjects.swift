@@ -265,7 +265,7 @@ struct Playlist: Codable {
     var owner: UserPublic
     var isPublic: Bool?
     var snapshotId: String
-    var tracks: Paging<PlaylistTrack>
+    var tracks: PlaylistTracks
     var type: String
     var uri: String
 
@@ -280,6 +280,11 @@ struct PlaylistTrack: Codable {
     var addedBy: UserPublic
     var isLocal: Bool
     var track: Track
+}
+
+struct PlaylistTracks: Codable {
+    var href: URL?
+    var total: Int
 }
 
 struct Recommendations: Codable {

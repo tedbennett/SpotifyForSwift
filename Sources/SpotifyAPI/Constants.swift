@@ -20,6 +20,7 @@ enum Endpoints: String {
     case search
     case shows
     case tracks
+    case playlists
     case audioFeatures = "audio-features"
     
     static subscript(_ endpoint: Endpoints) -> String {

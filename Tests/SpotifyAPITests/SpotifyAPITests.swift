@@ -9,7 +9,7 @@ final class SpotifyAPITests: XCTestCase {
         manager.initialize(clientId: "e164f018712e4c6ba906a595591ff010",
                            redirectUris: ["music-manager://oauth-callback/"],
                            scopes: [])
-        manager.authClient?.accessToken = "BQAJylOavwNo9yU8BqtRpLgXB8OijoI_18AvxbalIG0vECFQLshQ-4_jAqZ1GJ0ouPe-Rhno1JU8lvd8XiVLq3_7NjqrOH8gEhG-1g2c-by_k-0NKhB-uTq99vmzZ2Lc-vHvKu3KZg8-qL1E1jHJxllJQMdwu4dOat78-fc5xW4G9FEtjr0DRnIIe-r-51FYbN1JF6u2KMQp3sWp8eq-hCwapg"
+        manager.authClient?.accessToken = "BQCJzN8M6Mx2P0kuAfzVLZvcZa1NsdFJtibQSv_jCHPV_NejsPSQF2gam6yULGdRMH50kwx7Jz9IIVIjhrdSXSnoLLzBihwof76VR-iksEf9EOprEX5UJMj32NVLvag7qJdryaa41BZ6yCM2mZZjmdZeUwQLQ_2bGGuh4rgy5BnEiDeVYz1-oogndsiy5T46n41nzs1Y73S_etdw7L_U-5jVYw"
     }
     
     // TODO: - Test Authorization
@@ -41,6 +41,7 @@ final class SpotifyAPITests: XCTestCase {
             }
             XCTAssertNotNil(user)
             XCTAssertNil(error)
+            XCTAssertEqual(user?.displayName, "Ted")
         }
     }
     
@@ -65,6 +66,28 @@ final class SpotifyAPITests: XCTestCase {
             }
             XCTAssertNil(user)
             XCTAssertNotNil(error)
+        }
+    }
+    
+    func testGetPlaylist() {
+        let manager = SpotifyAPI.manager
+        
+        var playlist: Playlist?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getPlaylist(id: "7rKuU4sYp5WDiu5r2prnML") {
+            playlist = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotNil(playlist)
+            XCTAssertNil(error)
         }
     }
     
