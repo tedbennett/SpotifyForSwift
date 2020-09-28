@@ -38,34 +38,41 @@ public class SpotifyAPI {
         })
     }
     
-    func getUser(completion: @escaping (UserPublic?, String?) -> Void) {
+    func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
-        let url = baseUrl.appendingPathComponent(Endpoints[.me])
-        let headers: HTTPHeaders = [
-            "Authorization": "Bearer \(authClient!.accessToken!)"
-        ]
-        
-        authClient!.authorize {_,_ in
-        AF.request(url, headers: headers)
-            .validate()
-            .response { response in
-                switch response.result {
-                    case .success(let data):
-                        do {
-                            let decoder = JSONDecoder()
-                            decoder.keyDecodingStrategy = .convertFromSnakeCase
-                            let decoded = try decoder.decode(UserPublic.self, from: data!)
-                            completion(decoded, nil)
-                            
-                        } catch {
-                            completion(nil, error.localizedDescription)
-                        }
-                        
-                    case .failure(let error):
-                        completion(nil, error.localizedDescription)
+        authClient!.authorize { (_,_) in
+            let url = baseUrl.appendingPathComponent(Endpoints[.me])
+            var request = URLRequest(url: url)
+            request.setValue("Bearer \(self.authClient!.accessToken!)", forHTTPHeaderField: "Authorization")
+            
+            URLSession.shared.dataTask(with: request) { (data, response, error) in
+                guard error == nil else {
+                    completion(nil, error)
+                    return
                 }
-            }
+                
+                guard let data = data else {
+                    completion(nil, NSError(domain: "No data returned", code: 10, userInfo: nil))
+                    return
+                }
+                
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                
+                do {
+                    let decoded = try decoder.decode(SpotifyError.self, from: data)
+                    completion(nil, NSError(domain: decoded.message, code: decoded.status, userInfo: nil))
+                    return
+                } catch {}
+                
+                do {
+                    let decoded = try decoder.decode(UserPublic.self, from: data)
+                    completion(decoded, nil)
+                } catch let parseError {
+                    completion(nil, parseError)
+                }
+            }.resume()
         }
     }
 }

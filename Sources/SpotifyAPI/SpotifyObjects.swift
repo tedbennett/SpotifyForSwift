@@ -177,7 +177,7 @@ struct EpisodeSimplified: Codable {
     var uri: String
 }
 
-struct Error: Codable {
+struct SpotifyError: Codable {
     var status: Int
     var message: String
 }
