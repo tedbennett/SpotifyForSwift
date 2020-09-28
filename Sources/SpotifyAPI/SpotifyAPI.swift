@@ -79,13 +79,31 @@ public class SpotifyAPI {
         }
     }
     
-    func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
-        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
-        
-        authClient!.authorize { (_,_) in
-            let url = baseUrl.appendingPathComponent(Endpoints[.me])
-            self.request(url: url, completion: completion)
+    func paginatedRequest<Object: Codable>(url: URL, objects: [Object] = [], completion: @escaping ([Object], Error?) -> Void) {
+        request(url: url) { (paginatedObjects: Paging<Object>?, error) in
+            guard let paginatedObjects = paginatedObjects else {
+                completion(objects, error)
+                return
+            }
+            guard error == nil else {
+                completion(objects, error)
+                return
+            }
+            var newObjects = objects
+            newObjects.append(contentsOf: paginatedObjects.items)
+            if paginatedObjects.next != nil {
+                self.paginatedRequest(url: paginatedObjects.next!, objects: newObjects, completion: completion)
+            } else {
+                completion(newObjects, error)
+            }
         }
+    }
+    
+    func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
+        
+        let url = baseUrl.appendingPathComponent(Endpoints[.me])
+        self.request(url: url, completion: completion)
+        
     }
     
     // MARK: - Playlists
@@ -95,17 +113,31 @@ public class SpotifyAPI {
         self.request(url: url, completion: completion)
     }
     
+    func getUserPlaylists(id: String, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+        let url = baseUrl.appendingPathComponent(Endpoints[.users])
+            .appendingPathComponent(id)
+            .appendingPathComponent(Endpoints[.playlists])
+        paginatedRequest(url: url, completion: completion)
+    }
+    
     // MARK: - Tracks
     
     func getTrack(id: String, completion: @escaping (Track?, Error?) -> Void) {
         let url = baseUrl.appendingPathComponent(Endpoints[.tracks]).appendingPathComponent(id)
-        self.request(url: url, completion: completion)
+        request(url: url, completion: completion)
     }
     
     // MARK: - Albums
     
     func getAlbum(id: String, completion: @escaping (Album?, Error?) -> Void) {
         let url = baseUrl.appendingPathComponent(Endpoints[.albums]).appendingPathComponent(id)
-        self.request(url: url, completion: completion)
+        request(url: url, completion: completion)
+    }
+    
+    // MARK: - Artists
+    
+    func getArtist(id: String, completion: @escaping (Artist?, Error?) -> Void) {
+        let url = baseUrl.appendingPathComponent(Endpoints[.artists]).appendingPathComponent(id)
+        request(url: url, completion: completion)
     }
 }

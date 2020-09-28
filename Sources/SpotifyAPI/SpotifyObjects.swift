@@ -234,9 +234,9 @@ struct Paging<Object: Codable>: Codable {
     var href: URL?
     var items: [Object]
     var limit: Int
-    var next: String?
+    var next: URL?
     var offset: Int
-    var previous: String?
+    var previous: URL?
     var total: Int
 }
 
