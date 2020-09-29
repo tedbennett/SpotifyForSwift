@@ -117,6 +117,18 @@ public class SpotifyAPI {
         }
     }
     
+    func singlePageRequest<Object: Codable>(url: URLRequest, key: String, completion: @escaping ([Object], URL?, Error?) -> Void) {
+        let wrappedCompletion: ([String:Paging<Object>]?, Error?) -> Void = { response, error in
+            guard let paginatedObjects = response?[key] else {
+                completion([], nil, error)
+                return
+            }
+            completion(paginatedObjects.items, paginatedObjects.next, error)
+        }
+        request(url: url, completion: wrappedCompletion)
+        
+    }
+    
     // MARK: - Users
     
     func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
@@ -292,6 +304,44 @@ public class SpotifyAPI {
             paginatedRequest(url: url, completion: completion)
         } catch let error {
             completion([], error)
+        }
+    }
+    
+    // MARK: - Search
+    
+    // NOTE: Limited to search for one type of object at a time
+    func search<Object: Codable>(for queries: String, completion: @escaping ([Object], URL?, Error?) -> Void) {
+        var type: String
+        switch Object.self {
+            case is Playlist.Type: type = SearchType[.playlist]
+            case is Artist.Type: type = SearchType[.artist]
+            case is AlbumSimplified.Type: type = SearchType[.album]
+            case is ShowSimplified.Type: type = SearchType[.show]
+            case is Track.Type: type = SearchType[.track]
+            case is EpisodeSimplified.Type: type = SearchType[.episode]
+            default:
+                completion([], nil, ApiError.invalidSearchObject)
+                return
+        }
+        guard let queryString = queries.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            completion([], nil, ApiError.invalidSearchObject)
+            return
+        }
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": queryString, "type": type])
+            singlePageRequest(url: url, key: "\(type)s", completion: completion)
+        } catch let error {
+            completion([], nil, error)
+        }
+    }
+    
+    func getTrackFromIsrc(_ isrc: String, completion: @escaping ([Track], URL?, Error?) -> Void) {
+        let type = SearchType[.track]
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])
+            singlePageRequest(url: url, key: "\(type)s", completion: completion)
+        } catch let error {
+            completion([], nil, error)
         }
     }
     

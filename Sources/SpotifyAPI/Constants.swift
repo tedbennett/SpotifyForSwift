@@ -34,11 +34,41 @@ enum Endpoints: String {
     }
 }
 
-enum Queries: String {
+enum Query: String {
+    case q
     case ids
     case market
     case limit
     case offset
+    case required
+    
+    static subscript(_ q: Query) -> String {
+        return q.rawValue
+    }
+}
+
+enum SearchType: String {
+    case artist
+    case album
+    case playlist
+    case track
+    case show
+    case episode
+    
+    static subscript(_ type: SearchType) -> String {
+        return type.rawValue
+    }
+    
+    static func keyword(_ type: SearchType) -> String {
+        switch type {
+            case artist: return "artists"
+            case album: return "albums"
+            case playlist: return "playlists"
+            case track: return "tracks"
+            case show: return "shows"
+            case episode: return "episodes"
+        }
+    }
 }
 
 enum AuthScope: String {
@@ -66,6 +96,7 @@ enum AuthScope: String {
 enum ApiError: Error {
     case invalidUrl
     case invalidAccessToken
+    case invalidSearchObject
     case resourceDoesNotExist
     case expiredAccessToken
     case tooManyRequests

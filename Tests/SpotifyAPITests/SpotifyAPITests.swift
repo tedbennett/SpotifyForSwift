@@ -9,7 +9,7 @@ final class SpotifyAPITests: XCTestCase {
         manager.initialize(clientId: "e164f018712e4c6ba906a595591ff010",
                            redirectUris: ["music-manager://oauth-callback/"],
                            scopes: [])
-        manager.authClient?.accessToken = "BQC4n9QZ2ypg8zdYr4x8vBq83e9Ei3uacO4tj4cHA03_pbggWjuyGUWzFGPqtd2qg1JzuIDRO0vNqTkJBep5tQrrKRfcOCDE7gxDnILmuCcVjdNOHh40lKuANMfVsCO7TjFHG6kaBWzgwkVRg9hDzemiEh4k9LneXfF8GFOH79ag"
+        manager.authClient?.accessToken = "BQD2gl3qbOlzTCHRY8xL9K0A-R8dG1BSyoaiZuj_uXsqsvBEyDExot1CqCCcEd3gsvRlVPF_AJr9LN9FgoFwWrmuwWDHLrEXF6spswizpV2LLyTekrpBVnxBhgya1bcvP6IbDCe2eF0ub7qqn-vGUtFaAw8xYrdsDmNYvJp8dXNK"
     }
     
     // TODO: - Test Authorization
@@ -381,7 +381,7 @@ final class SpotifyAPITests: XCTestCase {
         var error: Error?
         
         let exp = expectation(description: "Check request is successful")
-
+        
         manager.getArtistsTopTracks(id: "25uiPmTg16RbhZWAqwLBy5", country: "GB") {
             tracks = $0
             error = $1
@@ -470,5 +470,66 @@ final class SpotifyAPITests: XCTestCase {
             XCTAssertNil(error)
         }
     }
-
+    
+    func testSearch() {
+        let manager = SpotifyAPI.manager
+        
+        var tracks = [Track]()
+        var next: URL?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.search(for: "Taylor Swift") { (results: [Track], url: URL?, searchError: Error?) in
+            tracks = results
+            next = url
+            error = searchError
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 100) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            tracks.forEach {track in print(track.name)}
+            //print(next)
+            XCTAssertNotEqual(tracks.count, 0)
+            XCTAssertNil(error)
+        }
+    }
+    
+    func testGetTracksFromIsrc() {
+        let manager = SpotifyAPI.manager
+        var tracks = [Track]()
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getPlaylistsTracks(id: "7rKuU4sYp5WDiu5r2prnML", country: "GB") { playlistTracks, _ in
+            var i = 1
+            
+            let oldTracks = playlistTracks.filter {$0.track.externalIds?.isrc != nil}.map {$0.track}
+            let total = oldTracks.count
+            print(total)
+            oldTracks.forEach {track in
+                if let isrc = track.externalIds?.isrc {
+                    manager.getTrackFromIsrc(isrc) { (results, _, searchError) in
+                        tracks.append(contentsOf: results)
+                        error = searchError
+                        i += 1
+                        if i == total {
+                            exp.fulfill()
+                        }
+                    }
+                }
+            }
+        }
+        waitForExpectations(timeout: 100) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            print(tracks.count)
+            XCTAssertNotEqual(tracks.count, 0)
+            XCTAssertNil(error)
+        }
+    }
 }
