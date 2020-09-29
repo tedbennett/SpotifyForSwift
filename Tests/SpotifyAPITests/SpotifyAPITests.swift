@@ -170,6 +170,50 @@ final class SpotifyAPITests: XCTestCase {
         }
     }
     
+    func testGetAlbums() {
+        let manager = SpotifyAPI.manager
+        
+        var albums: [Album?]?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getAlbums(ids: ["0PiWf1iYUUTHDEPnPTFxqs","4UWPrrDdzEsdMUDzYM8FC6","386IqvSuljaZsMjwDGGdLj","3a9qH2VEsSiOZvMrjaS0Nu"]) {
+            albums = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotEqual(albums?.count, 0)
+            XCTAssertNil(error)
+        }
+    }
+    
+    func testGetAlbumsTracks() {
+        let manager = SpotifyAPI.manager
+        
+        var tracks = [TrackSimplified]()
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getAlbumsTracks(id: "0PiWf1iYUUTHDEPnPTFxqs") {
+            tracks = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotEqual(tracks.count, 0)
+            XCTAssertNil(error)
+        }
+    }
+    
     func testGetArtist() {
         let manager = SpotifyAPI.manager
         
@@ -195,7 +239,7 @@ final class SpotifyAPITests: XCTestCase {
     func testGetArtists() {
         let manager = SpotifyAPI.manager
         
-        var artists: [Artist]?
+        var artists: [Artist?]?
         var error: Error?
         
         let exp = expectation(description: "Check request is successful")
@@ -233,6 +277,7 @@ final class SpotifyAPITests: XCTestCase {
             }
             XCTAssertNotEqual(albums.count, 0)
             XCTAssertNil(error)
+            albums.forEach {album in print(album.id) }
         }
     }
     

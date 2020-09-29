@@ -170,6 +170,24 @@ public class SpotifyAPI {
         }
     }
     
+    func getAlbums(ids: [String], completion: @escaping ([Album?]?, Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums]], queries:  ["ids": ids.joined(separator: ",")])
+            arrayRequest(url: url, key: "albums", completion: completion)
+        } catch let error {
+            completion(nil, error)
+        }
+    }
+    
+    func getAlbumsTracks(id: String, completion: @escaping ([TrackSimplified], Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id, Endpoints[.tracks]])
+            paginatedRequest(url: url, completion: completion)
+        } catch let error {
+            completion([], error)
+        }
+    }
+    
     // MARK: - Artists
     
     func getArtist(id: String, completion: @escaping (Artist?, Error?) -> Void) {
@@ -181,7 +199,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getArtists(ids: [String], completion: @escaping ([Artist]?, Error?) -> Void) {
+    func getArtists(ids: [String], completion: @escaping ([Artist?]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists]], queries:  ["ids": ids.joined(separator: ",")])
             arrayRequest(url: url, key: "artists", completion: completion)
