@@ -285,7 +285,7 @@ struct Playlist: Codable {
     var owner: UserPublic
     var isPublic: Bool?
     var snapshotId: String
-    var tracks: Paging<PlaylistTrack>
+    var tracks: Paging<PlaylistTrackWrapper>
     var type: String
     var uri: String
 
