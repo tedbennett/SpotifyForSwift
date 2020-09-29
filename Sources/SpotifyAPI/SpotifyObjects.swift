@@ -32,7 +32,7 @@ struct AlbumSimplified: Codable {
     var albumGroup: String?
     var albumType: String
     var artists: [ArtistSimplified]?
-    var availableMarkets: [String]
+    var availableMarkets: [String]?
     var externalUrls: ExternalUrl
     var href: URL?
     var id: String
@@ -381,7 +381,7 @@ struct ShowSimplified: Codable {
 struct Track: Codable {
     var album: AlbumSimplified
     var artists: [ArtistSimplified]
-    var availableMarkets: [String]
+    var availableMarkets: [String]?
     var discNumber: Int
     var durationMs: Int
     var explicit: Bool

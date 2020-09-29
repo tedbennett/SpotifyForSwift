@@ -9,7 +9,7 @@ final class SpotifyAPITests: XCTestCase {
         manager.initialize(clientId: "e164f018712e4c6ba906a595591ff010",
                            redirectUris: ["music-manager://oauth-callback/"],
                            scopes: [])
-        manager.authClient?.accessToken = "BQBTMfCHS_psIDm2hFDtroNNw60GiPMpzT5FtZYizN3odBPnPK3WBIWnCBIbJtrdDNRJY5jkURaPZTYltFpfMKPK0x9CW5vzaUcx54NCEnXBulLHF0mUSEq3GgvvB8OWChCdp4V3fey4eaE9XFmC0RXUcY1yc0Dh8FJd7ZbdpmPAQydPr3pgpq3FdkXxfqlRO-F_lqtELx3YO5k9rcJff0AxTQ"
+        manager.authClient?.accessToken = "BQDU2wYLGxUjWmP1uy7KTz3aW8VDl0bWsvRM8VGriYHRzG0gxynf1SNUVJoNmSHvUT0lu2MeQyZzcajv-oU7c66VBfaqxeMX4gf9-6s5bj4pX0ETUnekOrQO5jKkvqpmLjulV4Pn0SRW0DoHGd-2rEyV4txmGntkZv-gUbHpwE_ebxCEAdIBEhG2dOrYYrR6SgHXSuyB7wX0LPsYCDw8dEjHfg"
     }
     
     // TODO: - Test Authorization
@@ -20,6 +20,18 @@ final class SpotifyAPITests: XCTestCase {
                                            redirectUris: ["music-manager://oauth-callback/"],
                                            scopes: [.playlistReadPrivate, .playlistModifyPrivate])
         XCTAssertEqual(SpotifyAPITests.manager.authClient?.scope, "playlist-read-private%20playlist-modify-private")
+    }
+    
+    func testGetUrlRequest() {
+        do {
+            let request = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], "e164f018712e4c6ba906a595591ff010", Endpoints[.albums]], queries: ["country":"EN"])
+            XCTAssertNotNil(request)
+            print(request)
+        } catch {
+            XCTAssertNil(error)
+            print(error)
+        }
+        
     }
     
     func testGetUserId() {
@@ -180,6 +192,28 @@ final class SpotifyAPITests: XCTestCase {
         }
     }
     
+    func testGetArtists() {
+        let manager = SpotifyAPI.manager
+        
+        var artists: [Artist]?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getArtists(ids: ["25uiPmTg16RbhZWAqwLBy5","3FPflECmvkrze212dLPRSC","4QM5QCHicznALtX885CnZC","1kMPdZQVdUhMDKDWOJM5iK"]) {
+            artists = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotEqual(artists?.count, 0)
+            XCTAssertNil(error)
+        }
+    }
+    
     func testGetArtistsAlbums() {
         let manager = SpotifyAPI.manager
         
@@ -210,7 +244,7 @@ final class SpotifyAPITests: XCTestCase {
         
         let exp = expectation(description: "Check request is successful")
 
-        manager.getArtistsTopTracks(id: "25uiPmTg16RbhZWAqwLBy5") {
+        manager.getArtistsTopTracks(id: "25uiPmTg16RbhZWAqwLBy5", country: "GB") {
             tracks = $0
             error = $1
             exp.fulfill()
@@ -240,6 +274,9 @@ final class SpotifyAPITests: XCTestCase {
         waitForExpectations(timeout: 10) {expError in
             if let expError = expError {
                 XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            artists?.forEach {artist in
+                print(artist.id)
             }
             XCTAssertNotEqual(artists?.count, 0)
             XCTAssertNil(error)

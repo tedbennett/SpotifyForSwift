@@ -7,7 +7,7 @@
 
 import Foundation
 
-let baseUrl = URL(string: "https://api.spotify.com/v1/")!
+let baseUrl = "https://api.spotify.com/v1/"
 let authUrl = URL(string: "https://accounts.spotify.com/authorize")!
 let tokenUrl = URL(string: "https://accounts.spotify.com/api/token")!
 
@@ -33,6 +33,13 @@ enum Endpoints: String {
     }
 }
 
+enum Queries: String {
+    case ids
+    case market
+    case limit
+    case offset
+}
+
 enum AuthScope: String {
     case ugcImageUpload = "ugc-image-upload"
     case userReadPlaybackState = "user-read-playback-state"
@@ -53,4 +60,12 @@ enum AuthScope: String {
     case userReadRecentlyPlayed = "user-read-recently-played"
     case userFollowRead = "user-follow-read"
     case userFollowModify = "user-follow-modify"
+}
+
+enum ApiError: Error {
+    case invalidUrl
+    case invalidAccessToken
+    case resourceDoesNotExist
+    case expiredAccessToken
+    case tooManyRequests
 }
