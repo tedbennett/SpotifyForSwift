@@ -9,7 +9,7 @@ final class SpotifyAPITests: XCTestCase {
         manager.initialize(clientId: "e164f018712e4c6ba906a595591ff010",
                            redirectUris: ["music-manager://oauth-callback/"],
                            scopes: [])
-        manager.authClient?.accessToken = "BQDU2wYLGxUjWmP1uy7KTz3aW8VDl0bWsvRM8VGriYHRzG0gxynf1SNUVJoNmSHvUT0lu2MeQyZzcajv-oU7c66VBfaqxeMX4gf9-6s5bj4pX0ETUnekOrQO5jKkvqpmLjulV4Pn0SRW0DoHGd-2rEyV4txmGntkZv-gUbHpwE_ebxCEAdIBEhG2dOrYYrR6SgHXSuyB7wX0LPsYCDw8dEjHfg"
+        manager.authClient?.accessToken = "BQC4n9QZ2ypg8zdYr4x8vBq83e9Ei3uacO4tj4cHA03_pbggWjuyGUWzFGPqtd2qg1JzuIDRO0vNqTkJBep5tQrrKRfcOCDE7gxDnILmuCcVjdNOHh40lKuANMfVsCO7TjFHG6kaBWzgwkVRg9hDzemiEh4k9LneXfF8GFOH79ag"
     }
     
     // TODO: - Test Authorization
@@ -103,7 +103,7 @@ final class SpotifyAPITests: XCTestCase {
         }
     }
     
-    func testGetUsersPlaylists() {
+    func testGetOwnPlaylists() {
         let manager = SpotifyAPI.manager
         
         var playlists = [PlaylistSimplified]()
@@ -111,7 +111,7 @@ final class SpotifyAPITests: XCTestCase {
         
         let exp = expectation(description: "Check request is successful")
         
-        manager.getUserPlaylists(id: "f9nj63bwb7v9z4ti8q39ljf4g") {
+        manager.getOwnPlaylists {
             playlists = $0
             error = $1
             exp.fulfill()
@@ -123,6 +123,75 @@ final class SpotifyAPITests: XCTestCase {
             XCTAssertNotNil(playlists)
             XCTAssertNil(error)
             print(playlists.count)
+        }
+    }
+    
+    func testGetUsersPlaylists() {
+        let manager = SpotifyAPI.manager
+        
+        var playlists = [PlaylistSimplified]()
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getUsersPlaylists(id: "f9nj63bwb7v9z4ti8q39ljf4g") {
+            playlists = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotNil(playlists)
+            XCTAssertNil(error)
+            playlists.forEach {pl in print("\(pl.id), \(pl.name)")}
+        }
+    }
+    
+    func testGetPlaylistsTracks() {
+        let manager = SpotifyAPI.manager
+        
+        var tracks = [PlaylistTrackWrapper]()
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getPlaylistsTracks(id: "08tzmWUNows4krYs1wpGLm", country: "GB") {
+            tracks = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotNil(tracks)
+            XCTAssertNil(error)
+            print(tracks)
+        }
+    }
+    
+    func testGetPlaylistImages() {
+        let manager = SpotifyAPI.manager
+        
+        var images: [Image]?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getPlaylistImages(id: "08tzmWUNows4krYs1wpGLm") {
+            images = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotNil(images)
+            XCTAssertNil(error)
+            //print(images?.map {img in img.height})
         }
     }
     
@@ -145,6 +214,29 @@ final class SpotifyAPITests: XCTestCase {
             }
             XCTAssertNotNil(track)
             XCTAssertNil(error)
+        }
+    }
+    
+    func testGetTracks() {
+        let manager = SpotifyAPI.manager
+        
+        var tracks: [Track?]?
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getTracks(ids: ["113sWqjcYyjbb4caE8wVsV","1tnAZoY7RXaGwMdQFcxfdC","3IIFPtZ5HZ1SWvtloTY0za","0TOUhXumBiPoCHYJXnobjx"]) {
+            tracks = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            XCTAssertNotEqual(tracks?.count, 0)
+            XCTAssertNil(error)
+            //tracks?.forEach {track in print(track?.name, track?.id)}
         }
     }
     
@@ -200,7 +292,7 @@ final class SpotifyAPITests: XCTestCase {
         
         let exp = expectation(description: "Check request is successful")
         
-        manager.getAlbumsTracks(id: "0PiWf1iYUUTHDEPnPTFxqs") {
+        manager.getAlbumsTracks(id: "4UWPrrDdzEsdMUDzYM8FC6") {
             tracks = $0
             error = $1
             exp.fulfill()
@@ -209,6 +301,7 @@ final class SpotifyAPITests: XCTestCase {
             if let expError = expError {
                 XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
             }
+            tracks.forEach {track in print(track.name, track.id)}
             XCTAssertNotEqual(tracks.count, 0)
             XCTAssertNil(error)
         }
@@ -327,4 +420,55 @@ final class SpotifyAPITests: XCTestCase {
             XCTAssertNil(error)
         }
     }
+    
+    // requires user-library-read
+    func testGetLibraryAlbums() {
+        let manager = SpotifyAPI.manager
+        
+        var albums = [SavedAlbum]()
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getLibraryAlbums {
+            albums = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 10) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            albums.forEach {album in
+                print(album.album.name)
+            }
+            XCTAssertNotEqual(albums.count, 0)
+            XCTAssertNil(error)
+        }
+    }
+    
+    // requires user-library-read
+    func testGetLibraryTracks() {
+        let manager = SpotifyAPI.manager
+        
+        var tracks = [SavedTrack]()
+        var error: Error?
+        
+        let exp = expectation(description: "Check request is successful")
+        
+        manager.getLibraryTracks {
+            tracks = $0
+            error = $1
+            exp.fulfill()
+        }
+        waitForExpectations(timeout: 100) {expError in
+            if let expError = expError {
+                XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
+            }
+            print(tracks.count)
+            XCTAssertNotEqual(tracks.count, 0)
+            XCTAssertNil(error)
+        }
+    }
+
 }

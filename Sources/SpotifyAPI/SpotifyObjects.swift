@@ -295,11 +295,55 @@ struct Playlist: Codable {
     }
 }
 
-struct PlaylistTrack: Codable {
+struct PlaylistTrackWrapper: Codable {
     var addedAt: String
     var addedBy: UserPublic
     var isLocal: Bool
-    var track: Track
+    var track: PlaylistTrack
+}
+
+struct PlaylistTrack: Codable {
+    var album: PlaylistAlbum?
+    var artists: [PlaylistArtist]?
+    var availableMarkets: [String]?
+    var discNumber: Int?
+    var durationMs: Int?
+    var explicit: Bool?
+    var externalIds: ExternalId?
+    var externalUrls: ExternalUrl?
+    var href: URL?
+    var id: String?
+    var isPlayable: Bool?
+    var linkedFrom: TrackLink?
+    var name: String
+    var popularity: Int?
+    var previewUrl: URL?
+    var trackNumber: Int?
+    var type: String
+    var uri: String
+}
+
+struct PlaylistAlbum: Codable {
+    var albumGroup: String?
+    var albumType: String?
+    var artists: [ArtistSimplified]?
+    var availableMarkets: [String]?
+    var externalUrls: ExternalUrl?
+    var href: URL?
+    var id: String?
+    var images: [Image]
+    var name: String
+    var type: String
+    var uri: String?
+}
+
+struct PlaylistArtist: Codable {
+    var externalUrls: ExternalUrl?
+    var href: URL?
+    var id: String?
+    var name: String
+    var type: String
+    var uri: String?
 }
 
 struct PlaylistTracks: Codable {
@@ -326,17 +370,17 @@ struct ResumePoint: Codable {
     var resumePositionMs: Int
 }
 
-struct SavedTrack {
+struct SavedTrack: Codable {
     var addedAt: String
     var track: Track
 }
 
-struct SavedAlbum {
+struct SavedAlbum: Codable {
     var addedAt: String
     var album: Album
 }
 
-struct SavedShow {
+struct SavedShow: Codable {
     var addedAt: String
     var show: Show
 }
@@ -382,7 +426,7 @@ struct Track: Codable {
     var album: AlbumSimplified
     var artists: [ArtistSimplified]
     var availableMarkets: [String]?
-    var discNumber: Int
+    var discNumber: Int?
     var durationMs: Int
     var explicit: Bool
     var externalIds: ExternalId
@@ -411,7 +455,7 @@ struct TrackSimplified: Codable {
     var isPlayable: Bool?
     var linkedFrom: TrackLink?
     var name: String
-    var previewUrl: String
+    var previewUrl: String?
     var trackNumber: Int
     var type: String
     var uri: String

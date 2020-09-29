@@ -2,7 +2,7 @@ import XCTest
 @testable import SpotifyAPI
 
 final class ObjectDecodingTests: XCTestCase {
-
+    
     // MARK: - Spotify API Object decoding tests
     
     func testAlbumDecoding() {
@@ -990,6 +990,52 @@ final class ObjectDecodingTests: XCTestCase {
         }
         
         XCTAssertNotNil(user)
+    }
+    
+    func testImageListDecoding() {
+        let json = """
+        [
+            {
+            "height": 640,
+            "url": "https://mosaic.scdn.co/640/ab67616d0000b273106de83d0b714c2de73dab41ab67616d0000b2731b0ebb03931089cadbbe54cfab67616d0000b2734958dc3c8e7aa7db22f55af3ab67616d0000b2734bd4c4d5329cb6abd1a64fc9",
+            "width": 640
+            },
+            {
+            "height": 300,
+            "url": "https://mosaic.scdn.co/300/ab67616d0000b273106de83d0b714c2de73dab41ab67616d0000b2731b0ebb03931089cadbbe54cfab67616d0000b2734958dc3c8e7aa7db22f55af3ab67616d0000b2734bd4c4d5329cb6abd1a64fc9",
+            "width": 300
+            },
+            {
+            "height": 60,
+            "url": "https://mosaic.scdn.co/60/ab67616d0000b273106de83d0b714c2de73dab41ab67616d0000b2731b0ebb03931089cadbbe54cfab67616d0000b2734958dc3c8e7aa7db22f55af3ab67616d0000b2734bd4c4d5329cb6abd1a64fc9",
+            "width": 60
+            }
+        ]
+        """
+        
+        let data = json.data(using: .utf8)!
+        
+        var images: [Image]?
+        do {
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            images = try decoder.decode([Image].self, from: data)
+        }  catch let DecodingError.dataCorrupted(context) {
+            print(context)
+        } catch let DecodingError.keyNotFound(key, context) {
+            print("Key '\(key)' not found:", context.debugDescription)
+            print("codingPath:", context.codingPath)
+        } catch let DecodingError.valueNotFound(value, context) {
+            print("Value '\(value)' not found:", context.debugDescription)
+            print("codingPath:", context.codingPath)
+        } catch let DecodingError.typeMismatch(type, context)  {
+            print("Type '\(type)' mismatch:", context.debugDescription)
+            print("codingPath:", context.codingPath)
+        } catch {
+            print("error: ", error)
+        }
+        print(images)
+        XCTAssertNotNil(images)
     }
     
     static var allTests = [

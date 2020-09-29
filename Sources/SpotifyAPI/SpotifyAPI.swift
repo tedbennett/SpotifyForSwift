@@ -46,44 +46,44 @@ public class SpotifyAPI {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
         //authClient!.authorize { (_,_) in
-            URLSession.shared.dataTask(with: url) { (data, response, error) in
-                if let response = response as? HTTPURLResponse {
-                    if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After"){
-                        DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
-                            self.request(url: url, completion: completion)
-                        }
-                        return
+        URLSession.shared.dataTask(with: url) { (data, response, error) in
+            if let response = response as? HTTPURLResponse {
+                if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After"){
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+                        self.request(url: url, completion: completion)
                     }
-                }
-                guard error == nil else {
-                    completion(nil, error)
                     return
                 }
-                
-                guard let data = data else {
-                    completion(nil, NSError(domain: "No data returned", code: 10, userInfo: nil))
-                    return
+            }
+            guard error == nil else {
+                completion(nil, error)
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, NSError(domain: "No data returned", code: 10, userInfo: nil))
+                return
+            }
+            
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            
+            do {
+                let decoded = try decoder.decode(SpotifyError.self, from: data)
+                completion(nil, NSError(domain: decoded.message, code: decoded.status, userInfo: nil))
+                return
+            } catch {}
+            
+            do {
+                let decoded = try decoder.decode(Object.self, from: data)
+                completion(decoded, nil)
+            } catch let parseError {
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                    print(json)
                 }
-                
-                let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
-                
-                do {
-                    let decoded = try decoder.decode(SpotifyError.self, from: data)
-                    completion(nil, NSError(domain: decoded.message, code: decoded.status, userInfo: nil))
-                    return
-                } catch {}
-                
-                do {
-                    let decoded = try decoder.decode(Object.self, from: data)
-                    completion(decoded, nil)
-                } catch let parseError {
-                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
-                        print(json)
-                    }
-                    completion(nil, parseError)
-                }
-            }.resume()
+                completion(nil, parseError)
+            }
+        }.resume()
         //}
     }
     
@@ -139,12 +139,41 @@ public class SpotifyAPI {
         }
     }
     
-    func getUserPlaylists(id: String, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+    // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
+    func getOwnPlaylists(completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
         do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]])
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.playlists]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
         } catch let error {
             completion([], error)
+        }
+    }
+    
+    // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
+    func getUsersPlaylists(id: String, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], queries: ["limit":"50"])
+            paginatedRequest(url: url, completion: completion)
+        } catch let error {
+            completion([], error)
+        }
+    }
+    
+    func getPlaylistsTracks(id: String, country: String, completion: @escaping ([PlaylistTrackWrapper], Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], queries: ["market": country, "limit": "50"])
+            paginatedRequest(url: url, completion: completion)
+        } catch let error {
+            completion([], error)
+        }
+    }
+    
+    func getPlaylistImages(id: String, completion: @escaping ([Image]?, Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.images]])
+            request(url: url, completion: completion)
+        } catch let error {
+            completion(nil, error)
         }
     }
     
@@ -154,6 +183,15 @@ public class SpotifyAPI {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks], id])
             request(url: url, completion: completion)
+        } catch let error {
+            completion(nil, error)
+        }
+    }
+    
+    func getTracks(ids: [String], completion: @escaping ([Track?]?, Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks]], queries:  ["ids": ids.joined(separator: ",")])
+            arrayRequest(url: url, key: "tracks", completion: completion)
         } catch let error {
             completion(nil, error)
         }
@@ -181,7 +219,7 @@ public class SpotifyAPI {
     
     func getAlbumsTracks(id: String, completion: @escaping ([TrackSimplified], Error?) -> Void) {
         do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id, Endpoints[.tracks]])
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id, Endpoints[.tracks]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
         } catch let error {
             completion([], error)
@@ -210,7 +248,7 @@ public class SpotifyAPI {
     
     func getArtistsAlbums(id: String, completion: @escaping ([AlbumSimplified], Error?) -> Void) {
         do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.albums]])
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.albums]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
         } catch let error {
             completion([], error)
@@ -232,6 +270,28 @@ public class SpotifyAPI {
             arrayRequest(url: url, key: "artists", completion: completion)
         } catch let error {
             completion(nil, error)
+        }
+    }
+    
+    // MARK: - Library
+    
+    // requires user-library-read
+    func getLibraryAlbums(completion: @escaping ([SavedAlbum], Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], queries: ["limit":"50"])
+            paginatedRequest(url: url, completion: completion)
+        } catch let error {
+            completion([], error)
+        }
+    }
+    
+    // requires user-library-read
+    func getLibraryTracks(completion: @escaping ([SavedTrack], Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], queries: ["limit":"50"])
+            paginatedRequest(url: url, completion: completion)
+        } catch let error {
+            completion([], error)
         }
     }
     
