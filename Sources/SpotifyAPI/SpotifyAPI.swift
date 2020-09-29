@@ -9,11 +9,13 @@ public class SpotifyAPI {
     
     private init() {}
     
+    // MARK: - Auth
+    
     func initialize(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true) {
         authClient = OAuth2CodeGrant(settings: [
             "client_id": clientId,
-            "authorize_uri": "https://accounts.spotify.com/authorize",
-            "token_uri": "https://accounts.spotify.com/api/token",
+            "authorize_uri": authUrl,
+            "token_uri": tokenUrl,
             "redirect_uris": redirectUris,
             "use_pkce": usePkce,
             "scope": scopes.map{scope in scope.rawValue}.joined(separator: "%20"),
@@ -38,15 +40,25 @@ public class SpotifyAPI {
         })
     }
     
+    // MARK: - Requests
+    
     func request<Object: Codable>(url: URL, completion: @escaping (Object?, Error?) -> Void) {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
-        authClient!.authorize { (_,_) in
+        //authClient!.authorize { (_,_) in
             
             var urlRequest = URLRequest(url: url)
             urlRequest.setValue("Bearer \(self.authClient!.accessToken!)", forHTTPHeaderField: "Authorization")
             
             URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
+                if let response = response as? HTTPURLResponse {
+                    if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After"){
+                        DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+                            self.request(url: url, completion: completion)
+                        }
+                        return
+                    }
+                }
                 guard error == nil else {
                     completion(nil, error)
                     return
@@ -76,10 +88,20 @@ public class SpotifyAPI {
                     completion(nil, parseError)
                 }
             }.resume()
+        //}
+    }
+    
+    func arrayRequest<Object: Codable>(url: URL, key: String, completion: @escaping ([Object]?, Error?) -> Void) {
+        
+        let wrappedCompletion: ([String:[Object]]?, Error?) -> Void = { response, error in
+            let array = response?[key]
+            completion(array, error)
         }
+        request(url: url, completion: wrappedCompletion)
     }
     
     func paginatedRequest<Object: Codable>(url: URL, objects: [Object] = [], completion: @escaping ([Object], Error?) -> Void) {
+        
         request(url: url) { (paginatedObjects: Paging<Object>?, error) in
             guard let paginatedObjects = paginatedObjects else {
                 completion(objects, error)
@@ -98,6 +120,8 @@ public class SpotifyAPI {
             }
         }
     }
+    
+    // MARK: - Users
     
     func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
         
@@ -139,5 +163,28 @@ public class SpotifyAPI {
     func getArtist(id: String, completion: @escaping (Artist?, Error?) -> Void) {
         let url = baseUrl.appendingPathComponent(Endpoints[.artists]).appendingPathComponent(id)
         request(url: url, completion: completion)
+    }
+    
+    func getArtistsAlbums(id: String, completion: @escaping ([AlbumSimplified], Error?) -> Void) {
+        let url = baseUrl.appendingPathComponent(Endpoints[.artists])
+            .appendingPathComponent(id)
+            .appendingPathComponent(Endpoints[.albums])
+        paginatedRequest(url: url, completion: completion)
+    }
+    
+    func getArtistsTopTracks(id: String, completion: @escaping ([Track]?, Error?) -> Void) {
+        let url = baseUrl.appendingPathComponent(Endpoints[.artists])
+            .appendingPathComponent(id)
+            .appendingPathComponent(Endpoints[.topTracks])
+        
+        arrayRequest(url: url, key: "tracks", completion: completion)
+    }
+    
+    func getArtistsRelatedArtists(id: String, completion: @escaping ([Artist]?, Error?) -> Void) {
+        let url = baseUrl.appendingPathComponent(Endpoints[.artists])
+            .appendingPathComponent(id)
+            .appendingPathComponent(Endpoints[.relatedArtists])
+        
+        arrayRequest(url: url, key: "artists", completion: completion)
     }
 }

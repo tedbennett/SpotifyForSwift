@@ -8,6 +8,9 @@
 import Foundation
 
 let baseUrl = URL(string: "https://api.spotify.com/v1/")!
+let authUrl = URL(string: "https://accounts.spotify.com/authorize")!
+let tokenUrl = URL(string: "https://accounts.spotify.com/api/token")!
+
 
 enum Endpoints: String {
     case albums
@@ -22,6 +25,8 @@ enum Endpoints: String {
     case tracks
     case playlists
     case audioFeatures = "audio-features"
+    case topTracks = "top-tracks"
+    case relatedArtists = "related-artists"
     
     static subscript(_ endpoint: Endpoints) -> String {
         return endpoint.rawValue
