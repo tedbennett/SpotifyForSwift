@@ -11,7 +11,7 @@ public class SpotifyAPI {
     
     // MARK: - Auth
     
-    func initialize(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true) {
+    public func initialize(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true) {
         authClient = OAuth2CodeGrant(settings: [
             "client_id": clientId,
             "authorize_uri": authUrl,
@@ -23,7 +23,7 @@ public class SpotifyAPI {
         ] as OAuth2JSON)
     }
     
-    func authorize(completion: @escaping (Bool) -> Void) {
+    public func authorize(completion: @escaping (Bool) -> Void) {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         authClient!.forgetTokens()
         authClient!.authorize(callback: {authParameters, error in
@@ -109,7 +109,7 @@ public class SpotifyAPI {
             var newObjects = objects
             newObjects.append(contentsOf: paginatedObjects.items)
             if let next = paginatedObjects.next {
-                let nextUrl = self.getAuthenticatedUrl(url: next)
+                let nextUrl = self.getAuthenticatedUrl(url: next, method: .get)
                 self.paginatedRequest(url: nextUrl, objects: newObjects, completion: completion)
             } else {
                 completion(newObjects, error)
@@ -131,7 +131,7 @@ public class SpotifyAPI {
     
     // MARK: - Users
     
-    func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
+    public func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me]])
             request(url: url, completion: completion)
@@ -142,7 +142,7 @@ public class SpotifyAPI {
     
     // MARK: - Playlists
     
-    func getPlaylist(id: String, completion: @escaping (Playlist?, Error?) -> Void) {
+    public func getPlaylist(id: String, completion: @escaping (Playlist?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id])
             request(url: url, completion: completion)
@@ -152,7 +152,7 @@ public class SpotifyAPI {
     }
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
-    func getOwnPlaylists(completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+    public func getOwnPlaylists(completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.playlists]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
@@ -162,7 +162,7 @@ public class SpotifyAPI {
     }
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
-    func getUsersPlaylists(id: String, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+    public func getUsersPlaylists(id: String, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
@@ -171,7 +171,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getPlaylistsTracks(id: String, country: String, completion: @escaping ([PlaylistTrackWrapper], Error?) -> Void) {
+    public func getPlaylistsTracks(id: String, country: String, completion: @escaping ([PlaylistTrackWrapper], Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], queries: ["market": country, "limit": "50"])
             paginatedRequest(url: url, completion: completion)
@@ -180,7 +180,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getPlaylistImages(id: String, completion: @escaping ([Image]?, Error?) -> Void) {
+    public func getPlaylistImages(id: String, completion: @escaping ([Image]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.images]])
             request(url: url, completion: completion)
@@ -191,7 +191,7 @@ public class SpotifyAPI {
     
     // MARK: - Tracks
     
-    func getTrack(id: String, completion: @escaping (Track?, Error?) -> Void) {
+    public func getTrack(id: String, completion: @escaping (Track?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks], id])
             request(url: url, completion: completion)
@@ -200,7 +200,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getTracks(ids: [String], completion: @escaping ([Track?]?, Error?) -> Void) {
+    public func getTracks(ids: [String], completion: @escaping ([Track?]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks]], queries:  ["ids": ids.joined(separator: ",")])
             arrayRequest(url: url, key: "tracks", completion: completion)
@@ -211,7 +211,7 @@ public class SpotifyAPI {
     
     // MARK: - Albums
     
-    func getAlbum(id: String, completion: @escaping (Album?, Error?) -> Void) {
+    public func getAlbum(id: String, completion: @escaping (Album?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id])
             request(url: url, completion: completion)
@@ -220,7 +220,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getAlbums(ids: [String], completion: @escaping ([Album?]?, Error?) -> Void) {
+    public func getAlbums(ids: [String], completion: @escaping ([Album?]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums]], queries:  ["ids": ids.joined(separator: ",")])
             arrayRequest(url: url, key: "albums", completion: completion)
@@ -229,7 +229,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getAlbumsTracks(id: String, completion: @escaping ([TrackSimplified], Error?) -> Void) {
+    public func getAlbumsTracks(id: String, completion: @escaping ([TrackSimplified], Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id, Endpoints[.tracks]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
@@ -240,7 +240,7 @@ public class SpotifyAPI {
     
     // MARK: - Artists
     
-    func getArtist(id: String, completion: @escaping (Artist?, Error?) -> Void) {
+    public func getArtist(id: String, completion: @escaping (Artist?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id])
             request(url: url, completion: completion)
@@ -249,7 +249,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getArtists(ids: [String], completion: @escaping ([Artist?]?, Error?) -> Void) {
+    public func getArtists(ids: [String], completion: @escaping ([Artist?]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists]], queries:  ["ids": ids.joined(separator: ",")])
             arrayRequest(url: url, key: "artists", completion: completion)
@@ -258,7 +258,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getArtistsAlbums(id: String, completion: @escaping ([AlbumSimplified], Error?) -> Void) {
+    public func getArtistsAlbums(id: String, completion: @escaping ([AlbumSimplified], Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.albums]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
@@ -267,7 +267,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getArtistsTopTracks(id: String, country: String, completion: @escaping ([Track]?, Error?) -> Void) {
+    public func getArtistsTopTracks(id: String, country: String, completion: @escaping ([Track]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.topTracks]], queries: ["market": country])
             arrayRequest(url: url, key: "tracks", completion: completion)
@@ -276,7 +276,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getArtistsRelatedArtists(id: String, completion: @escaping ([Artist]?, Error?) -> Void) {
+    public func getArtistsRelatedArtists(id: String, completion: @escaping ([Artist]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.relatedArtists]])
             arrayRequest(url: url, key: "artists", completion: completion)
@@ -288,7 +288,7 @@ public class SpotifyAPI {
     // MARK: - Library
     
     // requires user-library-read
-    func getLibraryAlbums(completion: @escaping ([SavedAlbum], Error?) -> Void) {
+    public func getLibraryAlbums(completion: @escaping ([SavedAlbum], Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
@@ -298,7 +298,7 @@ public class SpotifyAPI {
     }
     
     // requires user-library-read
-    func getLibraryTracks(completion: @escaping ([SavedTrack], Error?) -> Void) {
+    public func getLibraryTracks(completion: @escaping ([SavedTrack], Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
@@ -310,7 +310,7 @@ public class SpotifyAPI {
     // MARK: - Search
     
     // NOTE: Limited to search for one type of object at a time
-    func search<Object: Codable>(for queries: String, completion: @escaping ([Object], URL?, Error?) -> Void) {
+    public func search<Object: Codable>(for queries: String, completion: @escaping ([Object], URL?, Error?) -> Void) {
         var type: String
         switch Object.self {
             case is Playlist.Type: type = SearchType[.playlist]
@@ -335,7 +335,7 @@ public class SpotifyAPI {
         }
     }
     
-    func getTrackFromIsrc(_ isrc: String, completion: @escaping ([Track], URL?, Error?) -> Void) {
+    public func getTrackFromIsrc(_ isrc: String, completion: @escaping ([Track], URL?, Error?) -> Void) {
         let type = SearchType[.track]
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])

@@ -71,7 +71,7 @@ enum SearchType: String {
     }
 }
 
-enum AuthScope: String {
+public enum AuthScope: String {
     case ugcImageUpload = "ugc-image-upload"
     case userReadPlaybackState = "user-read-playback-state"
     case userModifyPlaybackState = "user-modify-playback-state"

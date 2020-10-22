@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Album: Codable {
+public struct Album: Codable {
     var albumType: String
     var artists: [ArtistSimplified]
     var availableMarkets: [String]
@@ -28,7 +28,7 @@ struct Album: Codable {
     var uri: String
 }
 
-struct AlbumSimplified: Codable {
+public struct AlbumSimplified: Codable {
     var albumGroup: String?
     var albumType: String
     var artists: [ArtistSimplified]?
@@ -42,7 +42,7 @@ struct AlbumSimplified: Codable {
     var uri: String
 }
 
-struct Artist: Codable {
+public struct Artist: Codable {
     var externalUrls: ExternalUrl
     var followers: Followers?
     var genres: [String]
@@ -55,7 +55,7 @@ struct Artist: Codable {
     var uri: String
 }
 
-struct ArtistSimplified: Codable {
+public struct ArtistSimplified: Codable {
     var externalUrls: ExternalUrl
     var href: URL?
     var id: String
@@ -64,7 +64,7 @@ struct ArtistSimplified: Codable {
     var uri: String
 }
 
-struct AudioFeatures: Codable {
+public struct AudioFeatures: Codable {
     var acousticness: Double
     var analysisUrl: String
     var danceability: Double
@@ -85,30 +85,30 @@ struct AudioFeatures: Codable {
     var valence: Double
 }
 
-struct CategoryObject: Codable {
+public struct CategoryObject: Codable {
     var href: URL?
     var icons: [Image]
     var id: String
     var name: String
 }
 
-struct Context: Codable {
+public struct Context: Codable {
     var type: String
     var href: URL?
     var externalUrls: ExternalUrl
     var uri: String
 }
 
-struct Copyright: Codable {
+public struct Copyright: Codable {
     var text: String
     var type: String
 }
 
-struct Cursor: Codable {
+public struct Cursor: Codable {
     var after: String
 }
 
-struct Device: Codable {
+public struct Device: Codable {
     var id: String
     var isActive: Bool
     var isPrivateSession: Bool
@@ -117,11 +117,11 @@ struct Device: Codable {
     var volumePercent: Int
 }
 
-struct Devices: Codable {
+public struct Devices: Codable {
     var devices: [Device]
 }
 
-struct Disallows: Codable {
+public struct Disallows: Codable {
     var interruptingPlayback: Bool?
     var pausing: Bool?
     var resuming: Bool?
@@ -134,7 +134,7 @@ struct Disallows: Codable {
     var transferringPlayback: Bool?
 }
 
-struct Episode: Codable {
+public struct Episode: Codable {
     var audioPreviewUrl: String
     var description: String
     var durationMs: Int
@@ -156,7 +156,7 @@ struct Episode: Codable {
     var uri: String
 }
 
-struct EpisodeSimplified: Codable {
+public struct EpisodeSimplified: Codable {
     var audioPreviewUrl: String
     var description: String
     var durationMs: Int
@@ -177,12 +177,12 @@ struct EpisodeSimplified: Codable {
     var uri: String
 }
 
-struct SpotifyError: Codable {
+public struct SpotifyError: Codable {
     var status: Int
     var message: String
 }
 
-struct PlayerError: Codable {
+public struct PlayerError: Codable {
     var status: Int
     var message: String
     var reason: String
@@ -209,28 +209,28 @@ enum PlayerErrorReasons: String {
     case unknown = "UNKNOWN"
 }
 
-struct ExternalId: Codable {
+public struct ExternalId: Codable {
     var isrc: String?
     var ean: String?
     var upc: String?
 }
 
-struct ExternalUrl: Codable {
+public struct ExternalUrl: Codable {
     var spotify: String?
 }
 
-struct Followers: Codable {
+public struct Followers: Codable {
     var href: URL?
     var total: Int
 }
 
-struct Image: Codable {
+public struct Image: Codable {
     var height: Int?
     var url: String
     var width: Int?
 }
 
-struct Paging<Object: Codable>: Codable {
+public struct Paging<Object: Codable>: Codable {
     var href: URL?
     var items: [Object]
     var limit: Int
@@ -240,7 +240,7 @@ struct Paging<Object: Codable>: Codable {
     var total: Int
 }
 
-struct PagingCursor<Object: Codable>: Codable {
+public struct PagingCursor<Object: Codable>: Codable {
     var href: URL?
     var items: [Object]
     var limit: Int
@@ -249,13 +249,13 @@ struct PagingCursor<Object: Codable>: Codable {
     var total: Int
 }
 
-struct PlayHistory: Codable {
+public struct PlayHistory: Codable {
     var track: TrackSimplified
     var playedAt: String
     var context: Context
 }
 
-struct PlaylistSimplified: Codable {
+public struct PlaylistSimplified: Codable {
     var collaborative: Bool
     var externalUrls: ExternalUrl
     var href: URL?
@@ -275,7 +275,7 @@ struct PlaylistSimplified: Codable {
     }
 }
 
-struct Playlist: Codable {
+public struct Playlist: Codable {
     var collaborative: Bool
     var externalUrls: ExternalUrl
     var href: URL?
@@ -295,14 +295,14 @@ struct Playlist: Codable {
     }
 }
 
-struct PlaylistTrackWrapper: Codable {
+public struct PlaylistTrackWrapper: Codable {
     var addedAt: String
     var addedBy: UserPublic
     var isLocal: Bool
     var track: PlaylistTrack
 }
 
-struct PlaylistTrack: Codable {
+public struct PlaylistTrack: Codable {
     var album: PlaylistAlbum?
     var artists: [PlaylistArtist]?
     var availableMarkets: [String]?
@@ -323,7 +323,7 @@ struct PlaylistTrack: Codable {
     var uri: String
 }
 
-struct PlaylistAlbum: Codable {
+public struct PlaylistAlbum: Codable {
     var albumGroup: String?
     var albumType: String?
     var artists: [ArtistSimplified]?
@@ -337,7 +337,7 @@ struct PlaylistAlbum: Codable {
     var uri: String?
 }
 
-struct PlaylistArtist: Codable {
+public struct PlaylistArtist: Codable {
     var externalUrls: ExternalUrl?
     var href: URL?
     var id: String?
@@ -346,17 +346,17 @@ struct PlaylistArtist: Codable {
     var uri: String?
 }
 
-struct PlaylistTracks: Codable {
+public struct PlaylistTracks: Codable {
     var href: URL?
     var total: Int
 }
 
-struct Recommendations: Codable {
+public struct Recommendations: Codable {
     var seeds: [RecommendationsSeed]
     var tracks: [TrackSimplified]
 }
 
-struct RecommendationsSeed: Codable {
+public struct RecommendationsSeed: Codable {
     var afterFilteringSize: Int
     var afterRelinkingSize: Int
     var href: URL?
@@ -365,27 +365,27 @@ struct RecommendationsSeed: Codable {
     var type: String
 }
 
-struct ResumePoint: Codable {
+public struct ResumePoint: Codable {
     var fullyPlayed: Bool
     var resumePositionMs: Int
 }
 
-struct SavedTrack: Codable {
+public struct SavedTrack: Codable {
     var addedAt: String
     var track: Track
 }
 
-struct SavedAlbum: Codable {
+public struct SavedAlbum: Codable {
     var addedAt: String
     var album: Album
 }
 
-struct SavedShow: Codable {
+public struct SavedShow: Codable {
     var addedAt: String
     var show: Show
 }
 
-struct Show: Codable {
+public struct Show: Codable {
     var availableMarkets: [String]
     var copyrights: [Copyright]
     var description: String
@@ -404,7 +404,7 @@ struct Show: Codable {
     var uri: String
 }
 
-struct ShowSimplified: Codable {
+public struct ShowSimplified: Codable {
     var availableMarkets: [String]
     var copyrights: [Copyright]
     var description: String
@@ -422,7 +422,7 @@ struct ShowSimplified: Codable {
     var uri: String
 }
 
-struct Track: Codable {
+public struct Track: Codable {
     var album: AlbumSimplified
     var artists: [ArtistSimplified]
     var availableMarkets: [String]?
@@ -443,7 +443,7 @@ struct Track: Codable {
     var uri: String
 }
 
-struct TrackSimplified: Codable {
+public struct TrackSimplified: Codable {
     var artists: [ArtistSimplified]
     var availableMarkets: [String]
     var discNumber: Int
@@ -461,7 +461,7 @@ struct TrackSimplified: Codable {
     var uri: String
 }
 
-struct TrackLink: Codable {
+public struct TrackLink: Codable {
     var externalUrls: ExternalUrl
     var href: URL?
     var id: String
@@ -469,7 +469,7 @@ struct TrackLink: Codable {
     var uri: String
 }
 
-struct UserPrivate: Codable {
+public struct UserPrivate: Codable {
     var country: String
     var displayName: String
     var email: String
@@ -483,7 +483,7 @@ struct UserPrivate: Codable {
     var uri: String
 }
 
-struct UserPublic: Codable {
+public struct UserPublic: Codable {
     var displayName: String?
     var externalUrls: ExternalUrl
     var followers: Followers?
