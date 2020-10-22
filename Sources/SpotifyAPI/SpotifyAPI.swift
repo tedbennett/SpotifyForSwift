@@ -347,7 +347,7 @@ public class SpotifyAPI {
     
     // MARK: - URL Handling
     
-    func getUrlRequest(for paths: [String], queries: [String:String] = [:]) throws -> URLRequest  {
+    func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
         var components = URLComponents(string: baseUrl)!
         components.queryItems = queries.map { key, value in
             URLQueryItem(name: key, value: value)
@@ -359,11 +359,12 @@ public class SpotifyAPI {
         paths.forEach { path in
             url.appendPathComponent(path)
         }
-        return getAuthenticatedUrl(url: url)
+        return getAuthenticatedUrl(url: url, method: method)
     }
     
-    func getAuthenticatedUrl(url: URL) -> URLRequest {
+    func getAuthenticatedUrl(url: URL, method: HTTPMethod) -> URLRequest {
         var request = URLRequest(url: url)
+        request.method = method
         request.setValue("Bearer \(self.authClient!.accessToken!)", forHTTPHeaderField: "Authorization")
         return request
     }
