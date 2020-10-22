@@ -8,8 +8,8 @@
 import Foundation
 
 let baseUrl = "https://api.spotify.com/v1/"
-let authUrl = URL(string: "https://accounts.spotify.com/authorize")!
-let tokenUrl = URL(string: "https://accounts.spotify.com/api/token")!
+let authUrl = "https://accounts.spotify.com/authorize"
+let tokenUrl = "https://accounts.spotify.com/api/token"
 
 
 enum Endpoints: String {
