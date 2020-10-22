@@ -5,7 +5,7 @@ import Foundation
 public class SpotifyAPI {
     var authClient: OAuth2CodeGrant?
     
-    static let manager = SpotifyAPI()
+    public static let manager = SpotifyAPI()
     
     private init() {}
     
@@ -127,6 +127,30 @@ public class SpotifyAPI {
         }
         request(url: url, completion: wrappedCompletion)
         
+    }
+    
+    // MARK: - URL Handling
+    
+    func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
+        var components = URLComponents(string: baseUrl)!
+        components.queryItems = queries.map { key, value in
+            URLQueryItem(name: key, value: value)
+        }
+        guard var url = components.url else {
+            throw ApiError.invalidUrl
+        }
+        
+        paths.forEach { path in
+            url.appendPathComponent(path)
+        }
+        return getAuthenticatedUrl(url: url, method: method)
+    }
+    
+    func getAuthenticatedUrl(url: URL, method: HTTPMethod) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.method = method
+        request.setValue("Bearer \(self.authClient!.accessToken!)", forHTTPHeaderField: "Authorization")
+        return request
     }
     
     // MARK: - Users
@@ -343,29 +367,5 @@ public class SpotifyAPI {
         } catch let error {
             completion([], nil, error)
         }
-    }
-    
-    // MARK: - URL Handling
-    
-    func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
-        var components = URLComponents(string: baseUrl)!
-        components.queryItems = queries.map { key, value in
-            URLQueryItem(name: key, value: value)
-        }
-        guard var url = components.url else {
-            throw ApiError.invalidUrl
-        }
-        
-        paths.forEach { path in
-            url.appendPathComponent(path)
-        }
-        return getAuthenticatedUrl(url: url, method: method)
-    }
-    
-    func getAuthenticatedUrl(url: URL, method: HTTPMethod) -> URLRequest {
-        var request = URLRequest(url: url)
-        request.method = method
-        request.setValue("Bearer \(self.authClient!.accessToken!)", forHTTPHeaderField: "Authorization")
-        return request
     }
 }
