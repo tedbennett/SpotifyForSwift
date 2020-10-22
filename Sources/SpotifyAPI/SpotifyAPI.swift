@@ -40,6 +40,11 @@ public class SpotifyAPI {
         })
     }
     
+    public func handleRedirect(url: URL) {
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
+        authClient!.handleRedirectURL(url)
+    }
+    
     // MARK: - Requests
     
     func request<Object: Codable>(url: URLRequest, completion: @escaping (Object?, Error?) -> Void) {
