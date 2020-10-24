@@ -86,7 +86,7 @@ extension SpotifyAPI {
                 }
                 completion(nil, parseError)
             }
-        }
+        }.resume()
     }
     
     func arrayRequest<Object: Codable>(url: URLRequest, key: String, completion: @escaping ([Object]?, Error?) -> Void) {
@@ -242,7 +242,7 @@ extension SpotifyAPI {
         }
     }
     
-    public func createLibraryPlaylist(userId: String, name: String? = nil, description: String? = nil, isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Playlist?, Error?) -> Void) {
+    public func createPlaylist(userId: String, name: String? = nil, description: String? = nil, isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Playlist?, Error?) -> Void) {
         do {
             var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], userId, Endpoints[.playlists]], method: .post)
             
