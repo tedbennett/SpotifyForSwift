@@ -52,17 +52,13 @@ extension SpotifyAPI {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
         URLSession.shared.dataTask(with: url) { (data, response, error) in
-            if let response = response as? HTTPURLResponse {
-                if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
-                        self.request(url: url, completion: completion)
-                    }
-                    return
-                } else {
-                    // 429 but no retry-after header
-                    return
+            if let response = response as? HTTPURLResponse, response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+                    self.request(url: url, completion: completion)
                 }
+                return
             }
+            
             
             guard error == nil else {
                 completion(nil, error)
@@ -131,9 +127,9 @@ extension SpotifyAPI {
         
     }
 }
-    
+
 // MARK: - URL Handling
- 
+
 extension SpotifyAPI {
     func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
         var components = URLComponents(string: baseUrl)!
@@ -176,7 +172,7 @@ extension SpotifyAPI {
         return jsonData ?? Data()
     }
 }
-    
+
 // MARK: - Users
 
 extension SpotifyAPI {
@@ -190,8 +186,8 @@ extension SpotifyAPI {
         }
     }
 }
-    
-    // MARK: - Playlists
+
+// MARK: - Playlists
 
 extension SpotifyAPI {
     
@@ -254,8 +250,8 @@ extension SpotifyAPI {
         }
     }
 }
-    
-    // MARK: - Tracks
+
+// MARK: - Tracks
 
 extension SpotifyAPI {
     
@@ -277,8 +273,8 @@ extension SpotifyAPI {
         }
     }
 }
-    
-    // MARK: - Albums
+
+// MARK: - Albums
 
 extension SpotifyAPI {
     
@@ -309,8 +305,8 @@ extension SpotifyAPI {
         }
     }
 }
-    
-    // MARK: - Artists
+
+// MARK: - Artists
 
 extension SpotifyAPI {
     
@@ -359,9 +355,9 @@ extension SpotifyAPI {
         }
     }
 }
-    
-    // MARK: - Library
-   
+
+// MARK: - Library
+
 extension SpotifyAPI {
     
     // requires user-library-read
@@ -384,8 +380,8 @@ extension SpotifyAPI {
         }
     }
 }
-    
-    // MARK: - Search
+
+// MARK: - Search
 
 extension SpotifyAPI {
     
