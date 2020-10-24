@@ -5,8 +5,6 @@ import Foundation
 public class SpotifyAPI {
     var authClient: OAuth2CodeGrant?
     
-    var loader: OAuth2DataLoader?
-    
     public static let manager = SpotifyAPI()
     
     private init() {}
@@ -30,7 +28,6 @@ public class SpotifyAPI {
         authClient!.authorize(callback: {authParameters, error in
             if authParameters != nil {
                 completion(true)
-                self.loader = OAuth2DataLoader(oauth2: self.authClient!)
             }
             else {
                 print("Authorization was canceled or went wrong: \(String(describing: error))")
@@ -52,13 +49,11 @@ public class SpotifyAPI {
 
 extension SpotifyAPI {
     func request<Object: Codable>(url: URLRequest, completion: @escaping (Object?, Error?) -> Void) {
-        guard let loader = loader else {
-            fatalError("Spotify manager not initialized, call initialize() before use")
-        }
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
-        loader.perform(request: url) { response in
-            if response.response.statusCode == 429 {
-                if let retryDelay = response.response.value(forHTTPHeaderField: "Retry-After") {
+        URLSession.shared.dataTask(with: url) { (data, response, error) in
+            if let response = response as? HTTPURLResponse {
+                if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
                         self.request(url: url, completion: completion)
                     }
@@ -69,12 +64,12 @@ extension SpotifyAPI {
                 }
             }
             
-            if let error = response.error {
+            guard error == nil else {
                 completion(nil, error)
                 return
             }
             
-            guard let data = try? response.responseData() else {
+            guard let data = data else {
                 completion(nil, NSError(domain: "No data returned", code: 10, userInfo: nil))
                 return
             }
@@ -86,7 +81,9 @@ extension SpotifyAPI {
                 let decoded = try decoder.decode(Object.self, from: data)
                 completion(decoded, nil)
             } catch let parseError {
-                print(try! response.responseJSON())
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                    print(json)
+                }
                 completion(nil, parseError)
             }
         }
@@ -139,9 +136,6 @@ extension SpotifyAPI {
  
 extension SpotifyAPI {
     func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
-        
-        
-
         var components = URLComponents(string: baseUrl)!
         components.queryItems = queries.map { key, value in
             URLQueryItem(name: key, value: value)
@@ -172,7 +166,7 @@ extension SpotifyAPI {
         for (key, value) in json {
             if value != nil {
                 if let bool = value as? Bool {
-                    body[key] = bool
+                    body[key] = bool ? "true" : "false"
                 } else {
                     body[key] = value
                 }
@@ -248,7 +242,7 @@ extension SpotifyAPI {
         }
     }
     
-    public func createPlaylist(userId: String, name: String?, description: String?, isPublic: Bool?, collaborative: Bool?, completion: @escaping (Playlist?, Error?) -> Void) {
+    public func createLibraryPlaylist(userId: String, name: String? = nil, description: String? = nil, isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Playlist?, Error?) -> Void) {
         do {
             var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], userId, Endpoints[.playlists]], method: .post)
             
