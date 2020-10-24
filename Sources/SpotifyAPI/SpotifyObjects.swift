@@ -8,184 +8,184 @@
 import Foundation
 
 public struct Album: Codable {
-    var albumType: String
-    var artists: [ArtistSimplified]
-    var availableMarkets: [String]
-    var copyrights: [Copyright]
-    var externalIds: ExternalId
-    var externalUrls: ExternalUrl
-    var genres: [String]
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var label: String?
-    var name: String
-    var popularity: Int
-    var releaseDate: String
-    var releaseDatePrecision: String
-    var tracks: Paging<TrackSimplified>
-    var type: String
-    var uri: String
+    public var albumType: String
+    public var artists: [ArtistSimplified]
+    public var availableMarkets: [String]
+    public var copyrights: [Copyright]
+    public var externalIds: ExternalId
+    public var externalUrls: ExternalUrl
+    public var genres: [String]
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var label: String?
+    public var name: String
+    public var popularity: Int
+    public var releaseDate: String
+    public var releaseDatePrecision: String
+    public var tracks: Paging<TrackSimplified>
+    public var type: String
+    public var uri: String
 }
 
 public struct AlbumSimplified: Codable {
-    var albumGroup: String?
-    var albumType: String
-    var artists: [ArtistSimplified]?
-    var availableMarkets: [String]?
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var name: String
-    var type: String
-    var uri: String
+    public var albumGroup: String?
+    public var albumType: String
+    public var artists: [ArtistSimplified]?
+    public var availableMarkets: [String]?
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var name: String
+    public var type: String
+    public var uri: String
 }
 
 public struct Artist: Codable {
-    var externalUrls: ExternalUrl
-    var followers: Followers?
-    var genres: [String]
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var name: String
-    var popularity: Int
-    var type: String
-    var uri: String
+    public var externalUrls: ExternalUrl
+    public var followers: Followers?
+    public var genres: [String]
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var name: String
+    public var popularity: Int
+    public var type: String
+    public var uri: String
 }
 
 public struct ArtistSimplified: Codable {
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var name: String
-    var type: String
-    var uri: String
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var name: String
+    public var type: String
+    public var uri: String
 }
 
 public struct AudioFeatures: Codable {
-    var acousticness: Double
-    var analysisUrl: String
-    var danceability: Double
-    var durationMs: Int
-    var energy: Double
-    var id: String
-    var instrumentalness: Double
-    var key: Int
-    var liveness: Double
-    var loudness: Double
-    var mode: Int
-    var speechiness: Double
-    var tempo: Double
-    var timeSignature: Int
-    var trackHref: String
-    var type: String
-    var uri: String
-    var valence: Double
+    public var acousticness: Double
+    public var analysisUrl: String
+    public var danceability: Double
+    public var durationMs: Int
+    public var energy: Double
+    public var id: String
+    public var instrumentalness: Double
+    public var key: Int
+    public var liveness: Double
+    public var loudness: Double
+    public var mode: Int
+    public var speechiness: Double
+    public var tempo: Double
+    public var timeSignature: Int
+    public var trackHref: String
+    public var type: String
+    public var uri: String
+    public var valence: Double
 }
 
 public struct CategoryObject: Codable {
-    var href: URL?
-    var icons: [Image]
-    var id: String
-    var name: String
+    public var href: URL?
+    public var icons: [Image]
+    public var id: String
+    public var name: String
 }
 
 public struct Context: Codable {
-    var type: String
-    var href: URL?
-    var externalUrls: ExternalUrl
-    var uri: String
+    public var type: String
+    public var href: URL?
+    public var externalUrls: ExternalUrl
+    public var uri: String
 }
 
 public struct Copyright: Codable {
-    var text: String
-    var type: String
+    public var text: String
+    public var type: String
 }
 
 public struct Cursor: Codable {
-    var after: String
+    public var after: String
 }
 
 public struct Device: Codable {
-    var id: String
-    var isActive: Bool
-    var isPrivateSession: Bool
-    var name: String
-    var type: String
-    var volumePercent: Int
+    public var id: String
+    public var isActive: Bool
+    public var isPrivateSession: Bool
+    public var name: String
+    public var type: String
+    public var volumePercent: Int
 }
 
 public struct Devices: Codable {
-    var devices: [Device]
+    public var devices: [Device]
 }
 
 public struct Disallows: Codable {
-    var interruptingPlayback: Bool?
-    var pausing: Bool?
-    var resuming: Bool?
-    var seeking: Bool?
-    var skippingNext: Bool?
-    var skippingPrev: Bool?
-    var togglingRepeatContext: Bool?
-    var togglingShuffle: Bool?
-    var togglingRepeatTrack: Bool?
-    var transferringPlayback: Bool?
+    public var interruptingPlayback: Bool?
+    public var pausing: Bool?
+    public var resuming: Bool?
+    public var seeking: Bool?
+    public var skippingNext: Bool?
+    public var skippingPrev: Bool?
+    public var togglingRepeatContext: Bool?
+    public var togglingShuffle: Bool?
+    public var togglingRepeatTrack: Bool?
+    public var transferringPlayback: Bool?
 }
 
 public struct Episode: Codable {
-    var audioPreviewUrl: String
-    var description: String
-    var durationMs: Int
-    var explicit: Bool
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var isExternallyHosted: Bool
-    var isPlayable: Bool
-    var language: String
-    var languages: [String]
-    var name: String
-    var releaseDate: String
-    var releaseDatePrecision: String
-    var resumePoint: ResumePoint
-    var show: ShowSimplified
-    var type: String
-    var uri: String
+    public var audioPreviewUrl: String
+    public var description: String
+    public var durationMs: Int
+    public var explicit: Bool
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var isExternallyHosted: Bool
+    public var isPlayable: Bool
+    public var language: String
+    public var languages: [String]
+    public var name: String
+    public var releaseDate: String
+    public var releaseDatePrecision: String
+    public var resumePoint: ResumePoint
+    public var show: ShowSimplified
+    public var type: String
+    public var uri: String
 }
 
 public struct EpisodeSimplified: Codable {
-    var audioPreviewUrl: String
-    var description: String
-    var durationMs: Int
-    var explicit: Bool?
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var isExternallyHosted: Bool
-    var isPlayable: Bool?
-    var language: String
-    var languages: [String]?
-    var name: String
-    var releaseDate: String
-    var releaseDatePrecision: String
-    var resumePoint: ResumePoint?
-    var type: String
-    var uri: String
+    public var audioPreviewUrl: String
+    public var description: String
+    public var durationMs: Int
+    public var explicit: Bool?
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var isExternallyHosted: Bool
+    public var isPlayable: Bool?
+    public var language: String
+    public var languages: [String]?
+    public var name: String
+    public var releaseDate: String
+    public var releaseDatePrecision: String
+    public var resumePoint: ResumePoint?
+    public var type: String
+    public var uri: String
 }
 
 public struct SpotifyError: Codable {
-    var status: Int
-    var message: String
+    public var status: Int
+    public var message: String
 }
 
 public struct PlayerError: Codable {
-    var status: Int
-    var message: String
-    var reason: String
+    public var status: Int
+    public var message: String
+    public var reason: String
 }
 
 enum PlayerErrorReasons: String {
@@ -210,64 +210,64 @@ enum PlayerErrorReasons: String {
 }
 
 public struct ExternalId: Codable {
-    var isrc: String?
-    var ean: String?
-    var upc: String?
+    public var isrc: String?
+    public var ean: String?
+    public var upc: String?
 }
 
 public struct ExternalUrl: Codable {
-    var spotify: String?
+    public var spotify: String?
 }
 
 public struct Followers: Codable {
-    var href: URL?
-    var total: Int
+    public var href: URL?
+    public var total: Int
 }
 
 public struct Image: Codable {
-    var height: Int?
-    var url: String
-    var width: Int?
+    public var height: Int?
+    public var url: String
+    public var width: Int?
 }
 
 public struct Paging<Object: Codable>: Codable {
-    var href: URL?
-    var items: [Object]
-    var limit: Int
-    var next: URL?
-    var offset: Int
-    var previous: URL?
-    var total: Int
+    public var href: URL?
+    public var items: [Object]
+    public var limit: Int
+    public var next: URL?
+    public var offset: Int
+    public var previous: URL?
+    public var total: Int
 }
 
 public struct PagingCursor<Object: Codable>: Codable {
-    var href: URL?
-    var items: [Object]
-    var limit: Int
-    var next: String?
-    var cursors: Cursor
-    var total: Int
+    public var href: URL?
+    public var items: [Object]
+    public var limit: Int
+    public var next: String?
+    public var cursors: Cursor
+    public var total: Int
 }
 
 public struct PlayHistory: Codable {
-    var track: TrackSimplified
-    var playedAt: String
-    var context: Context
+    public var track: TrackSimplified
+    public var playedAt: String
+    public var context: Context
 }
 
 public struct PlaylistSimplified: Codable {
-    var collaborative: Bool
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var name: String
-    var owner: UserPublic
-    var isPublic: Bool?
-    var snapshotId: String
-    var tracks: PlaylistTracks
-    var type: String
-    var uri: String
+    public var collaborative: Bool
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var name: String
+    public var owner: UserPublic
+    public var isPublic: Bool?
+    public var snapshotId: String
+    public var tracks: PlaylistTracks
+    public var type: String
+    public var uri: String
     
     enum CodingKeys: String, CodingKey {
         case isPublic = "public"
@@ -276,18 +276,18 @@ public struct PlaylistSimplified: Codable {
 }
 
 public struct Playlist: Codable {
-    var collaborative: Bool
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var name: String
-    var owner: UserPublic
-    var isPublic: Bool?
-    var snapshotId: String
-    var tracks: Paging<PlaylistTrackWrapper>
-    var type: String
-    var uri: String
+    public var collaborative: Bool
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var name: String
+    public var owner: UserPublic
+    public var isPublic: Bool?
+    public var snapshotId: String
+    public var tracks: Paging<PlaylistTrackWrapper>
+    public var type: String
+    public var uri: String
 
     enum CodingKeys: String, CodingKey {
         case isPublic = "public"
@@ -296,200 +296,200 @@ public struct Playlist: Codable {
 }
 
 public struct PlaylistTrackWrapper: Codable {
-    var addedAt: String
-    var addedBy: UserPublic
-    var isLocal: Bool
-    var track: PlaylistTrack
+    public var addedAt: String
+    public var addedBy: UserPublic
+    public var isLocal: Bool
+    public var track: PlaylistTrack
 }
 
 public struct PlaylistTrack: Codable {
-    var album: PlaylistAlbum?
-    var artists: [PlaylistArtist]?
-    var availableMarkets: [String]?
-    var discNumber: Int?
-    var durationMs: Int?
-    var explicit: Bool?
-    var externalIds: ExternalId?
-    var externalUrls: ExternalUrl?
-    var href: URL?
-    var id: String?
-    var isPlayable: Bool?
-    var linkedFrom: TrackLink?
-    var name: String
-    var popularity: Int?
-    var previewUrl: URL?
-    var trackNumber: Int?
-    var type: String
-    var uri: String
+    public var album: PlaylistAlbum?
+    public var artists: [PlaylistArtist]?
+    public var availableMarkets: [String]?
+    public var discNumber: Int?
+    public var durationMs: Int?
+    public var explicit: Bool?
+    public var externalIds: ExternalId?
+    public var externalUrls: ExternalUrl?
+    public var href: URL?
+    public var id: String?
+    public var isPlayable: Bool?
+    public var linkedFrom: TrackLink?
+    public var name: String
+    public var popularity: Int?
+    public var previewUrl: URL?
+    public var trackNumber: Int?
+    public var type: String
+    public var uri: String
 }
 
 public struct PlaylistAlbum: Codable {
-    var albumGroup: String?
-    var albumType: String?
-    var artists: [ArtistSimplified]?
-    var availableMarkets: [String]?
-    var externalUrls: ExternalUrl?
-    var href: URL?
-    var id: String?
-    var images: [Image]
-    var name: String
-    var type: String
-    var uri: String?
+    public var albumGroup: String?
+    public var albumType: String?
+    public var artists: [ArtistSimplified]?
+    public var availableMarkets: [String]?
+    public var externalUrls: ExternalUrl?
+    public var href: URL?
+    public var id: String?
+    public var images: [Image]
+    public var name: String
+    public var type: String
+    public var uri: String?
 }
 
 public struct PlaylistArtist: Codable {
-    var externalUrls: ExternalUrl?
-    var href: URL?
-    var id: String?
-    var name: String
-    var type: String
-    var uri: String?
+    public var externalUrls: ExternalUrl?
+    public var href: URL?
+    public var id: String?
+    public var name: String
+    public var type: String
+    public var uri: String?
 }
 
 public struct PlaylistTracks: Codable {
-    var href: URL?
-    var total: Int
+    public var href: URL?
+    public var total: Int
 }
 
 public struct Recommendations: Codable {
-    var seeds: [RecommendationsSeed]
-    var tracks: [TrackSimplified]
+    public var seeds: [RecommendationsSeed]
+    public var tracks: [TrackSimplified]
 }
 
 public struct RecommendationsSeed: Codable {
-    var afterFilteringSize: Int
-    var afterRelinkingSize: Int
-    var href: URL?
-    var id: String
-    var initialPoolSize: Int
-    var type: String
+    public var afterFilteringSize: Int
+    public var afterRelinkingSize: Int
+    public var href: URL?
+    public var id: String
+    public var initialPoolSize: Int
+    public var type: String
 }
 
 public struct ResumePoint: Codable {
-    var fullyPlayed: Bool
-    var resumePositionMs: Int
+    public var fullyPlayed: Bool
+    public var resumePositionMs: Int
 }
 
 public struct SavedTrack: Codable {
-    var addedAt: String
-    var track: Track
+    public var addedAt: String
+    public var track: Track
 }
 
 public struct SavedAlbum: Codable {
-    var addedAt: String
-    var album: Album
+    public var addedAt: String
+    public var album: Album
 }
 
 public struct SavedShow: Codable {
-    var addedAt: String
-    var show: Show
+    public var addedAt: String
+    public var show: Show
 }
 
 public struct Show: Codable {
-    var availableMarkets: [String]
-    var copyrights: [Copyright]
-    var description: String
-    var explicit: Bool?
-    var episodes: Paging<EpisodeSimplified>
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var isExternallyHosted: Bool
-    var languages: [String]
-    var mediaType: String
-    var name: String
-    var publisher: String
-    var type: String
-    var uri: String
+    public var availableMarkets: [String]
+    public var copyrights: [Copyright]
+    public var description: String
+    public var explicit: Bool?
+    public var episodes: Paging<EpisodeSimplified>
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var isExternallyHosted: Bool
+    public var languages: [String]
+    public var mediaType: String
+    public var name: String
+    public var publisher: String
+    public var type: String
+    public var uri: String
 }
 
 public struct ShowSimplified: Codable {
-    var availableMarkets: [String]
-    var copyrights: [Copyright]
-    var description: String
-    var explicit: Bool
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var isExternallyHosted: Bool
-    var languages: [String]
-    var mediaType: String
-    var name: String
-    var publisher: String
-    var type: String
-    var uri: String
+    public var availableMarkets: [String]
+    public var copyrights: [Copyright]
+    public var description: String
+    public var explicit: Bool
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var isExternallyHosted: Bool
+    public var languages: [String]
+    public var mediaType: String
+    public var name: String
+    public var publisher: String
+    public var type: String
+    public var uri: String
 }
 
 public struct Track: Codable {
-    var album: AlbumSimplified
-    var artists: [ArtistSimplified]
-    var availableMarkets: [String]?
-    var discNumber: Int?
-    var durationMs: Int
-    var explicit: Bool
-    var externalIds: ExternalId
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var isPlayable: Bool?
-    var linkedFrom: TrackLink?
-    var name: String
-    var popularity: Int
-    var previewUrl: URL?
-    var trackNumber: Int
-    var type: String
-    var uri: String
+    public var album: AlbumSimplified
+    public var artists: [ArtistSimplified]
+    public var availableMarkets: [String]?
+    public var discNumber: Int?
+    public var durationMs: Int
+    public var explicit: Bool
+    public var externalIds: ExternalId
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var isPlayable: Bool?
+    public var linkedFrom: TrackLink?
+    public var name: String
+    public var popularity: Int
+    public var previewUrl: URL?
+    public var trackNumber: Int
+    public var type: String
+    public var uri: String
 }
 
 public struct TrackSimplified: Codable {
-    var artists: [ArtistSimplified]
-    var availableMarkets: [String]
-    var discNumber: Int
-    var durationMs: Int
-    var explicit: Bool
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var isPlayable: Bool?
-    var linkedFrom: TrackLink?
-    var name: String
-    var previewUrl: String?
-    var trackNumber: Int
-    var type: String
-    var uri: String
+    public var artists: [ArtistSimplified]
+    public var availableMarkets: [String]
+    public var discNumber: Int
+    public var durationMs: Int
+    public var explicit: Bool
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var isPlayable: Bool?
+    public var linkedFrom: TrackLink?
+    public var name: String
+    public var previewUrl: String?
+    public var trackNumber: Int
+    public var type: String
+    public var uri: String
 }
 
 public struct TrackLink: Codable {
-    var externalUrls: ExternalUrl
-    var href: URL?
-    var id: String
-    var type: String
-    var uri: String
+    public var externalUrls: ExternalUrl
+    public var href: URL?
+    public var id: String
+    public var type: String
+    public var uri: String
 }
 
 public struct UserPrivate: Codable {
-    var country: String
-    var displayName: String
-    var email: String
-    var externalUrls: ExternalUrl
-    var followers: Followers
-    var href: URL?
-    var id: String
-    var images: [Image]
-    var product: String
-    var type: String
-    var uri: String
+    public var country: String
+    public var displayName: String
+    public var email: String
+    public var externalUrls: ExternalUrl
+    public var followers: Followers
+    public var href: URL?
+    public var id: String
+    public var images: [Image]
+    public var product: String
+    public var type: String
+    public var uri: String
 }
 
 public struct UserPublic: Codable {
-    var displayName: String?
-    var externalUrls: ExternalUrl
-    var followers: Followers?
-    var href: URL?
-    var id: String
-    var images: [Image]?
-    var type: String
-    var uri: String
+    public var displayName: String?
+    public var externalUrls: ExternalUrl
+    public var followers: Followers?
+    public var href: URL?
+    public var id: String
+    public var images: [Image]?
+    public var type: String
+    public var uri: String
 }

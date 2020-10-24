@@ -25,7 +25,6 @@ public class SpotifyAPI {
     
     public func authorize(completion: @escaping (Bool) -> Void) {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
-        authClient!.forgetTokens()
         authClient!.authorize(callback: {authParameters, error in
             if authParameters != nil {
                 completion(true)
