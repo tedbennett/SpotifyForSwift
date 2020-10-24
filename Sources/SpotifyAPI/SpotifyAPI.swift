@@ -166,6 +166,21 @@ extension SpotifyAPI {
         request.method = method
         return request
     }
+    
+    func requestBody(from json: [String: Any?]) -> Data {
+        var body = [String: Any]()
+        for (key, value) in json {
+            if value != nil {
+                if let bool = value as? Bool {
+                    body[key] = bool
+                } else {
+                    body[key] = value
+                }
+            }
+        }
+        let jsonData = try? JSONSerialization.data(withJSONObject: body)
+        return jsonData ?? Data()
+    }
 }
     
 // MARK: - Users
@@ -227,6 +242,18 @@ extension SpotifyAPI {
     public func getPlaylistImages(id: String, completion: @escaping ([Image]?, Error?) -> Void) {
         do {
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.images]])
+            request(url: url, completion: completion)
+        } catch let error {
+            completion(nil, error)
+        }
+    }
+    
+    public func createPlaylist(userId: String, name: String?, description: String?, isPublic: Bool?, collaborative: Bool?, completion: @escaping (Playlist?, Error?) -> Void) {
+        do {
+            var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], userId, Endpoints[.playlists]], method: .post)
+            
+            url.httpBody = requestBody(from: ["name": name, "description": description, "public": isPublic, "collaborative": collaborative])
+            
             request(url: url, completion: completion)
         } catch let error {
             completion(nil, error)

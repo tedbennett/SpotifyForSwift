@@ -532,4 +532,18 @@ final class SpotifyAPITests: XCTestCase {
             XCTAssertNil(error)
         }
     }
+    
+    func testGetJsonDataFrom() {
+        let manager = SpotifyAPI.manager
+        
+        let data = manager.requestBody(from: ["name": "New Playlist", "description": nil, "public": true, "collaborative": nil])
+        
+        let json = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        
+        print(json)
+        XCTAssertEqual(json["name"] as? String, "New Playlist")
+        XCTAssertNil(json["description"])
+        XCTAssertEqual(json["public"] as? Bool, true)
+        XCTAssertNil(json["collaborative"])
+    }
 }
