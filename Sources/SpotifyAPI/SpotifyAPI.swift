@@ -39,6 +39,11 @@ public class SpotifyAPI {
         })
     }
     
+    public func forgetTokens() {
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
+        authClient!.forgetTokens()
+    }
+    
     public func handleRedirect(url: URL) {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         authClient!.handleRedirectURL(url)
