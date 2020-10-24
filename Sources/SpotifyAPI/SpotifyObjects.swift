@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Album: Codable {
+public struct Album: Codable, Identifiable {
     public var albumType: String
     public var artists: [ArtistSimplified]
     public var availableMarkets: [String]
@@ -28,7 +28,7 @@ public struct Album: Codable {
     public var uri: String
 }
 
-public struct AlbumSimplified: Codable {
+public struct AlbumSimplified: Codable, Identifiable {
     public var albumGroup: String?
     public var albumType: String
     public var artists: [ArtistSimplified]?
@@ -42,7 +42,7 @@ public struct AlbumSimplified: Codable {
     public var uri: String
 }
 
-public struct Artist: Codable {
+public struct Artist: Codable, Identifiable {
     public var externalUrls: ExternalUrl
     public var followers: Followers?
     public var genres: [String]
@@ -55,7 +55,7 @@ public struct Artist: Codable {
     public var uri: String
 }
 
-public struct ArtistSimplified: Codable {
+public struct ArtistSimplified: Codable, Identifiable {
     public var externalUrls: ExternalUrl
     public var href: URL?
     public var id: String
@@ -64,7 +64,7 @@ public struct ArtistSimplified: Codable {
     public var uri: String
 }
 
-public struct AudioFeatures: Codable {
+public struct AudioFeatures: Codable, Identifiable {
     public var acousticness: Double
     public var analysisUrl: String
     public var danceability: Double
@@ -85,7 +85,7 @@ public struct AudioFeatures: Codable {
     public var valence: Double
 }
 
-public struct CategoryObject: Codable {
+public struct CategoryObject: Codable, Identifiable {
     public var href: URL?
     public var icons: [Image]
     public var id: String
@@ -108,7 +108,7 @@ public struct Cursor: Codable {
     public var after: String
 }
 
-public struct Device: Codable {
+public struct Device: Codable, Identifiable {
     public var id: String
     public var isActive: Bool
     public var isPrivateSession: Bool
@@ -134,7 +134,7 @@ public struct Disallows: Codable {
     public var transferringPlayback: Bool?
 }
 
-public struct Episode: Codable {
+public struct Episode: Codable, Identifiable {
     public var audioPreviewUrl: String
     public var description: String
     public var durationMs: Int
@@ -156,7 +156,7 @@ public struct Episode: Codable {
     public var uri: String
 }
 
-public struct EpisodeSimplified: Codable {
+public struct EpisodeSimplified: Codable, Identifiable {
     public var audioPreviewUrl: String
     public var description: String
     public var durationMs: Int
@@ -255,7 +255,7 @@ public struct PlayHistory: Codable {
     public var context: Context
 }
 
-public struct PlaylistSimplified: Codable {
+public struct PlaylistSimplified: Codable, Identifiable {
     public var collaborative: Bool
     public var externalUrls: ExternalUrl
     public var href: URL?
@@ -275,7 +275,7 @@ public struct PlaylistSimplified: Codable {
     }
 }
 
-public struct Playlist: Codable {
+public struct Playlist: Codable, Identifiable {
     public var collaborative: Bool
     public var externalUrls: ExternalUrl
     public var href: URL?
@@ -302,7 +302,7 @@ public struct PlaylistTrackWrapper: Codable {
     public var track: PlaylistTrack
 }
 
-public struct PlaylistTrack: Codable {
+public struct PlaylistTrack: Codable, Identifiable {
     public var album: PlaylistAlbum?
     public var artists: [PlaylistArtist]?
     public var availableMarkets: [String]?
@@ -323,7 +323,7 @@ public struct PlaylistTrack: Codable {
     public var uri: String
 }
 
-public struct PlaylistAlbum: Codable {
+public struct PlaylistAlbum: Codable, Identifiable {
     public var albumGroup: String?
     public var albumType: String?
     public var artists: [ArtistSimplified]?
@@ -337,7 +337,7 @@ public struct PlaylistAlbum: Codable {
     public var uri: String?
 }
 
-public struct PlaylistArtist: Codable {
+public struct PlaylistArtist: Codable, Identifiable {
     public var externalUrls: ExternalUrl?
     public var href: URL?
     public var id: String?
@@ -356,7 +356,7 @@ public struct Recommendations: Codable {
     public var tracks: [TrackSimplified]
 }
 
-public struct RecommendationsSeed: Codable {
+public struct RecommendationsSeed: Codable, Identifiable {
     public var afterFilteringSize: Int
     public var afterRelinkingSize: Int
     public var href: URL?
@@ -385,7 +385,7 @@ public struct SavedShow: Codable {
     public var show: Show
 }
 
-public struct Show: Codable {
+public struct Show: Codable, Identifiable {
     public var availableMarkets: [String]
     public var copyrights: [Copyright]
     public var description: String
@@ -404,7 +404,7 @@ public struct Show: Codable {
     public var uri: String
 }
 
-public struct ShowSimplified: Codable {
+public struct ShowSimplified: Codable, Identifiable {
     public var availableMarkets: [String]
     public var copyrights: [Copyright]
     public var description: String
@@ -422,7 +422,7 @@ public struct ShowSimplified: Codable {
     public var uri: String
 }
 
-public struct Track: Codable {
+public struct Track: Codable, Identifiable {
     public var album: AlbumSimplified
     public var artists: [ArtistSimplified]
     public var availableMarkets: [String]?
@@ -443,7 +443,7 @@ public struct Track: Codable {
     public var uri: String
 }
 
-public struct TrackSimplified: Codable {
+public struct TrackSimplified: Codable, Identifiable {
     public var artists: [ArtistSimplified]
     public var availableMarkets: [String]
     public var discNumber: Int
@@ -461,7 +461,7 @@ public struct TrackSimplified: Codable {
     public var uri: String
 }
 
-public struct TrackLink: Codable {
+public struct TrackLink: Codable, Identifiable {
     public var externalUrls: ExternalUrl
     public var href: URL?
     public var id: String
@@ -469,7 +469,7 @@ public struct TrackLink: Codable {
     public var uri: String
 }
 
-public struct UserPrivate: Codable {
+public struct UserPrivate: Codable, Identifiable {
     public var country: String
     public var displayName: String
     public var email: String
@@ -483,7 +483,7 @@ public struct UserPrivate: Codable {
     public var uri: String
 }
 
-public struct UserPublic: Codable {
+public struct UserPublic: Codable, Identifiable {
     public var displayName: String?
     public var externalUrls: ExternalUrl
     public var followers: Followers?
