@@ -57,13 +57,21 @@ extension SpotifyAPI {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         
         URLSession.shared.dataTask(with: url) { (data, response, error) in
-            if let response = response as? HTTPURLResponse, response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
-                    self.request(url: url, completion: completion)
+            if let response = response as? HTTPURLResponse {
+                if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+                        self.request(url: url, completion: completion)
+                    }
+                    return
+                } else if response.statusCode == 401 {
+                    self.authorize { success in
+                        if success {
+                            self.request(url: url, completion: completion)
+                        }
+                    }
+                    return
                 }
-                return
             }
-            
             
             guard error == nil else {
                 completion(nil, error)
