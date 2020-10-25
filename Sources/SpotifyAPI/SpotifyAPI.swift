@@ -129,6 +129,8 @@ extension SpotifyAPI {
                     default:
                         completion(false, nil)
                 }
+            } else {
+                completion(false, nil)
             }
         }.resume()
     }
@@ -301,15 +303,31 @@ extension SpotifyAPI {
     public func addTracksToPlaylist(id: String, uris: [String], completion: @escaping (Bool, Error?) -> Void) {
         do {
             var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], method: .post)
+            // limited to 100 tracks per request
             
-            url.httpBody = requestBody(from: ["uris": uris])
+            let chunkedUris = uris.chunked(into: 100)
             
-            requestWithoutBodyResponse(url: url, completion: completion)
+            for chunk in chunkedUris {
+                url.httpBody = requestBody(from: ["uris": chunk])
+                
+                requestWithoutBodyResponse(url: url, completion: completion)
+            }
         } catch let error {
             completion(false, error)
         }
     }
 }
+
+// Array Helper function
+
+extension Array {
+    func chunked(into size: Int) -> [[Element]] {
+        return stride(from: 0, to: count, by: size).map {
+            Array(self[$0 ..< Swift.min($0 + size, count)])
+        }
+    }
+}
+
 
 // MARK: - Tracks
 
