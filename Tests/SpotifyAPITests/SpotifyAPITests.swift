@@ -1,5 +1,5 @@
 import XCTest
-import Alamofire
+import OAuth2
 @testable import SpotifyAPI
 
 final class SpotifyAPITests: XCTestCase {
@@ -7,7 +7,7 @@ final class SpotifyAPITests: XCTestCase {
     
     override class func setUp() {
         manager.initialize(clientId: "e164f018712e4c6ba906a595591ff010",
-                           redirectUris: ["music-manager://oauth-callback/"],
+                           redirectUris: ["xcode://oauth-callback/"],
                            scopes: [])
         manager.authClient?.accessToken = "BQD2gl3qbOlzTCHRY8xL9K0A-R8dG1BSyoaiZuj_uXsqsvBEyDExot1CqCCcEd3gsvRlVPF_AJr9LN9FgoFwWrmuwWDHLrEXF6spswizpV2LLyTekrpBVnxBhgya1bcvP6IbDCe2eF0ub7qqn-vGUtFaAw8xYrdsDmNYvJp8dXNK"
     }
@@ -17,7 +17,7 @@ final class SpotifyAPITests: XCTestCase {
     func testAuthScopes() {
         // Test that auth scopes are correctly converted into a URL-encoded string
         SpotifyAPITests.manager.initialize(clientId: "e164f018712e4c6ba906a595591ff010",
-                                           redirectUris: ["music-manager://oauth-callback/"],
+                                           redirectUris: ["xcode://oauth-callback/"],
                                            scopes: [.playlistReadPrivate, .playlistModifyPrivate])
         XCTAssertEqual(SpotifyAPITests.manager.authClient?.scope, "playlist-read-private%20playlist-modify-private")
     }
@@ -47,7 +47,7 @@ final class SpotifyAPITests: XCTestCase {
             error = $1
             exp.fulfill()
         }
-        waitForExpectations(timeout: 10) {expError in
+        waitForExpectations(timeout: 100) {expError in
             if let expError = expError {
                 XCTFail("waitForExpectationsWithTimeout errored: \(expError)")
             }
@@ -65,7 +65,7 @@ final class SpotifyAPITests: XCTestCase {
         
         let exp = expectation(description: "Check request is successful")
         
-        manager.authClient?.accessToken = "BQAR0E_EHPDIe6JmVwZoQBIjDwBlqoRvlQ2PwXsoluURllC45CXqLZzr4L8i8-1w1uLK8mIN5AI0OrkOGckxWelweYhQPDEH03m3HsbbR9JuWL0MVgFH4hUWp7uBfxLNCdjWGTcsRhHOeGGJ807UiqB4LA_CCjQ23HirrD3RZNWftWJQKQCmKI49W8sZBZgo30C8KV7XWvLr4hYVGXLRVHQHvw"
+        manager.authClient?.accessToken = "BQBeWQkQ9eKf-rJYVOTwh86Hxy2jX4KfmHb7rKpcWauwuB1jU743a95k5_XH-NoZfhBBLwcaROp0AIJ438cwWfs683rucx5Om6SXKehXYrH8AQH3wqOUBk5dUJjzvKAARsHUBuPbHkoaCfbIAYnjSMSaYfdNvUTnEldI0_kTUBbI"
         
         manager.getOwnUserProfile {
             user = $0

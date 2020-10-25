@@ -98,6 +98,41 @@ extension SpotifyAPI {
         }.resume()
     }
     
+    func requestWithoutBodyResponse(url: URLRequest, completion: @escaping (Bool, Error?) -> Void) {
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
+        
+        URLSession.shared.dataTask(with: url) { (data, response, error) in
+            guard error == nil else {
+                completion(false, error)
+                return
+            }
+            
+            if let response = response as? HTTPURLResponse {
+                switch response.statusCode {
+                    case 429:
+                        if let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+                                self.requestWithoutBodyResponse(url: url, completion: completion)
+                            }
+                        }
+                        return
+                    case 401:
+                        self.authorize { success in
+                            if success {
+                                self.requestWithoutBodyResponse(url: url, completion: completion)
+                            }
+                        }
+                        return
+                    case 201:
+                        completion(true, nil)
+                        return
+                    default:
+                        completion(false, nil)
+                }
+            }
+        }.resume()
+    }
+    
     func arrayRequest<Object: Codable>(url: URLRequest, key: String, completion: @escaping ([Object]?, Error?) -> Void) {
         
         let wrappedCompletion: ([String:[Object]]?, Error?) -> Void = { response, error in
@@ -260,6 +295,18 @@ extension SpotifyAPI {
             request(url: url, completion: completion)
         } catch let error {
             completion(nil, error)
+        }
+    }
+    
+    public func addTracksToPlaylist(id: String, uris: [String], completion: @escaping (Bool, Error?) -> Void) {
+        do {
+            var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], method: .post)
+            
+            url.httpBody = requestBody(from: ["uris": uris])
+            
+            requestWithoutBodyResponse(url: url, completion: completion)
+        } catch let error {
+            completion(false, error)
         }
     }
 }
