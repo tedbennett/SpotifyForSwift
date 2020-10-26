@@ -1,4 +1,3 @@
-import Alamofire
 import OAuth2
 import Foundation
 
@@ -203,7 +202,7 @@ extension SpotifyAPI {
         }
         
         var request = client.request(forURL: url)
-        request.method = method
+        request.httpMethod = method.rawValue
         return request
     }
     

@@ -17,7 +17,6 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.2.2"),
         .package(url: "https://github.com/p2/OAuth2.git", from: "5.1.0"),
     ],
     targets: [
@@ -25,7 +24,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "SpotifyAPI",
-            dependencies: ["Alamofire", "OAuth2"]),
+            dependencies: ["OAuth2"]),
         .testTarget(
             name: "SpotifyAPITests",
             dependencies: ["SpotifyAPI"]),
