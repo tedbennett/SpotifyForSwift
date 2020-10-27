@@ -297,7 +297,7 @@ extension SpotifyAPI {
         }
     }
     
-    public func createPlaylist(userId: String?, name: String? = nil, description: String? = nil, isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Playlist?, Error?) -> Void) {
+    public func createPlaylist(userId: String?, name: String, description: String?, isPublic: Bool, collaborative: Bool, completion: @escaping (Playlist?, Error?) -> Void) {
         do {
             let id = userId ?? self.userId
             var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], method: .post)
@@ -327,8 +327,8 @@ extension SpotifyAPI {
         }
     }
     
-    public func createPlaylist(userId: String?, name: String? = nil, description: String? = nil, uris: [String], isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Bool, Error?) -> Void) {
-        createPlaylist(userId: userId) { playlist, error in
+    public func createPlaylist(userId: String? = nil, name: String, description: String, uris: [String], isPublic: Bool, collaborative: Bool, completion: @escaping (Bool, Error?) -> Void) {
+        createPlaylist(userId: userId, name: name, description: description, isPublic: isPublic, collaborative: collaborative) { playlist, error in
             guard let playlist = playlist else {
                 print(error.debugDescription)
                 return
