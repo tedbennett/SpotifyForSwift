@@ -327,7 +327,7 @@ extension SpotifyAPI {
         }
     }
     
-    func createPlaylist(userId: String?, name: String? = nil, description: String? = nil, uris: [String], isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Bool, Error?) -> Void) {
+    public func createPlaylist(userId: String?, name: String? = nil, description: String? = nil, uris: [String], isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Bool, Error?) -> Void) {
         createPlaylist(userId: userId) { playlist, error in
             guard let playlist = playlist else {
                 print(error.debugDescription)
