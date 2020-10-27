@@ -8,6 +8,8 @@ public class SpotifyAPI {
     
     private init() {}
     
+    private var userId = ""
+    
     // MARK: - Auth
     
     public func initialize(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true) {
@@ -27,6 +29,13 @@ public class SpotifyAPI {
         authClient!.authorize(callback: {authParameters, error in
             if authParameters != nil {
                 completion(true)
+                self.getOwnUserProfile { user, error in
+                    guard let user = user else {
+                        print(error.debugDescription)
+                        return
+                    }
+                    self.userId = user.id
+                }
             }
             else {
                 print("Authorization was canceled or went wrong: \(String(describing: error))")
@@ -260,8 +269,9 @@ extension SpotifyAPI {
     }
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
-    public func getUsersPlaylists(id: String, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+    public func getUsersPlaylists(id: String? = nil, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
         do {
+            let id = id ?? userId
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
         } catch let error {
@@ -287,9 +297,10 @@ extension SpotifyAPI {
         }
     }
     
-    public func createPlaylist(userId: String, name: String? = nil, description: String? = nil, isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Playlist?, Error?) -> Void) {
+    public func createPlaylist(userId: String?, name: String? = nil, description: String? = nil, isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Playlist?, Error?) -> Void) {
         do {
-            var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], userId, Endpoints[.playlists]], method: .post)
+            let id = userId ?? self.userId
+            var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], method: .post)
             
             url.httpBody = requestBody(from: ["name": name, "description": description, "public": isPublic, "collaborative": collaborative])
             
@@ -313,6 +324,16 @@ extension SpotifyAPI {
             }
         } catch let error {
             completion(false, error)
+        }
+    }
+    
+    func createPlaylist(userId: String?, name: String? = nil, description: String? = nil, uris: [String], isPublic: Bool? = nil, collaborative: Bool? = nil, completion: @escaping (Bool, Error?) -> Void) {
+        createPlaylist(userId: userId) { playlist, error in
+            guard let playlist = playlist else {
+                print(error.debugDescription)
+                return
+            }
+            self.addTracksToPlaylist(id: playlist.id, uris: uris, completion: completion)
         }
     }
 }
