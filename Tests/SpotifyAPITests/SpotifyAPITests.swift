@@ -220,7 +220,7 @@ final class SpotifyAPITests: XCTestCase {
     func testGetTracks() {
         let manager = SpotifyAPI.manager
         
-        var tracks: [Track?]?
+        var tracks: [SpotifyAPI.Track?]?
         var error: Error?
         
         let exp = expectation(description: "Check request is successful")
@@ -474,13 +474,13 @@ final class SpotifyAPITests: XCTestCase {
     func testSearch() {
         let manager = SpotifyAPI.manager
         
-        var tracks = [Track]()
+        var tracks = [SpotifyAPI.Track]()
         var next: URL?
         var error: Error?
         
         let exp = expectation(description: "Check request is successful")
         
-        manager.search(for: "Taylor Swift") { (results: [Track], url: URL?, searchError: Error?) in
+        manager.search(for: "Taylor Swift") { (results: [SpotifyAPI.Track], url: URL?, searchError: Error?) in
             tracks = results
             next = url
             error = searchError
@@ -499,7 +499,7 @@ final class SpotifyAPITests: XCTestCase {
     
     func testGetTracksFromIsrc() {
         let manager = SpotifyAPI.manager
-        var tracks = [Track]()
+        var tracks = [SpotifyAPI.Track]()
         var error: Error?
         
         let exp = expectation(description: "Check request is successful")
