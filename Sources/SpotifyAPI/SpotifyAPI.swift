@@ -134,6 +134,10 @@ extension SpotifyAPI {
                     case 201, 204:
                         completion(true, nil)
                         return
+                    case 403:
+                        completion(false, ApiError.invalidScope)
+                    case 404:
+                        completion(false, ApiError.notFound)
                     default:
                         completion(false, nil)
                 }
@@ -525,7 +529,7 @@ extension SpotifyAPI {
 extension SpotifyAPI {
     public func addTrackToQueue(uri: String, completion: @escaping (Bool, Error?) -> Void) {
         do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.player], Endpoints[.queue]], queries: ["uri": uri])
+            let url = try getUrlRequest(for: [Endpoints[.me], Endpoints[.player], Endpoints[.queue]], method: .post, queries: ["uri": uri])
             self.requestWithoutBodyResponse(url: url, completion: completion)
         } catch let error {
             completion(false, error)
