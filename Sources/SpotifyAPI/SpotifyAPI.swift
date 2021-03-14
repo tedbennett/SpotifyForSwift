@@ -131,7 +131,7 @@ extension SpotifyAPI {
                             }
                         }
                         return
-                    case 201:
+                    case 201, 204:
                         completion(true, nil)
                         return
                     default:
@@ -516,6 +516,19 @@ extension SpotifyAPI {
             singlePageRequest(url: url, key: "\(type)s", completion: completion)
         } catch let error {
             completion([], nil, error)
+        }
+    }
+}
+
+// MARK: - Queue
+
+extension SpotifyAPI {
+    public func addTrackToQueue(uri: String, completion: @escaping (Bool, Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.player], Endpoints[.queue]], queries: ["uri": uri])
+            self.requestWithoutBodyResponse(url: url, completion: completion)
+        } catch let error {
+            completion(false, error)
         }
     }
 }

@@ -25,6 +25,8 @@ enum Endpoints: String {
     case tracks
     case playlists
     case images
+    case player
+    case queue
     case audioFeatures = "audio-features"
     case topTracks = "top-tracks"
     case relatedArtists = "related-artists"
