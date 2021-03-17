@@ -47,6 +47,11 @@ public class SpotifyAPI {
         })
     }
     
+    public func isAuthorised() -> Bool {
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
+        return authClient?.accessToken != nil
+    }
+    
     public func forgetTokens() {
         assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         authClient!.forgetTokens()
@@ -501,6 +506,7 @@ extension SpotifyAPI {
                 completion([], nil, ApiError.invalidSearchObject)
                 return
         }
+        
         guard let queryString = queries.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             completion([], nil, ApiError.invalidSearchObject)
             return

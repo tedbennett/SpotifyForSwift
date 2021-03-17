@@ -73,7 +73,7 @@ enum SearchType: String {
     }
 }
 
-enum ApiError: Error {
+public enum ApiError: Error {
     case notFound
     case invalidScope
     case invalidUrl
