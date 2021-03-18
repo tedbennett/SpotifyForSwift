@@ -486,6 +486,26 @@ extension SpotifyAPI {
             completion([], error)
         }
     }
+    
+    // requires user-library-modify
+    public func addTracksToLibrary(ids: [String], completion: @escaping (Bool, Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], method: .put, queries: ["ids": ids.joined(separator: ",")])
+            requestWithoutBodyResponse(url: url, completion: completion)
+        } catch let error {
+            completion(false, error)
+        }
+    }
+    
+    // requires user-library-modify
+    public func addAlbumsToLibrary(ids: [String], completion: @escaping (Bool, Error?) -> Void) {
+        do {
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], method: .put, queries: ["ids": ids.joined(separator: ",")])
+            requestWithoutBodyResponse(url: url, completion: completion)
+        } catch let error {
+            completion(false, error)
+        }
+    }
 }
 
 // MARK: - Search

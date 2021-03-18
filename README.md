@@ -48,11 +48,11 @@ API Endpoint | Implemented? | Notes
 `DELETE https://api.spotify.com/v1/me/following` | ❌ |
 `GET https://api.spotify.com/v1/me/following/contains` | ❌ |
 `GET https://api.spotify.com/v1/me/albums` | ✅ |
-`PUT https://api.spotify.com/v1/me/albums` | ❌ |
+`PUT https://api.spotify.com/v1/me/albums` | ✅ |
 `DELETE https://api.spotify.com/v1/me/albums` | ❌ |
 `GET https://api.spotify.com/v1/me/albums/contains` | ❌ |
 `GET https://api.spotify.com/v1/me/tracks` | ✅ |
-`PUT https://api.spotify.com/v1/me/tracks` | ❌ |
+`PUT https://api.spotify.com/v1/me/tracks` | ✅ |
 `DELETE https://api.spotify.com/v1/me/tracks` | ❌ |
 `GET https://api.spotify.com/v1/me/tracks/contains` | ❌ |
 `GET https://api.spotify.com/v1/me/shows` | ❌ |
@@ -73,7 +73,7 @@ API Endpoint | Implemented? | Notes
 `PUT https://api.spotify.com/v1/me/player/volume` | ❌ |
 `PUT https://api.spotify.com/v1/me/player/shuffle` | ❌ |
 `GET https://api.spotify.com/v1/me/player/recently-played` | ❌ |
-`POST https://api.spotify.com/v1/me/player/queue` | ❌ |
+`POST https://api.spotify.com/v1/me/player/queue` | ✅ |
 `GET https://api.spotify.com/v1/me/playlists` | ✅ |
 `GET https://api.spotify.com/v1/users/{user_id}/playlists` | ✅ |
 `POST https://api.spotify.com/v1/users/{user_id}/playlists` | ❌ |

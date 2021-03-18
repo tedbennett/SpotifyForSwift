@@ -89,6 +89,7 @@ extension SpotifyAPI {
     public enum HTTPMethod: String {
         case get = "get"
         case post = "post"
+        case put = "put"
     }
     
     public enum AuthScope: String {
