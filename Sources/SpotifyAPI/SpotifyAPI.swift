@@ -136,7 +136,7 @@ extension SpotifyAPI {
                             }
                         }
                         return
-                    case 201, 204:
+                    case 200, 201, 202, 204:
                         completion(true, nil)
                         return
                     case 403:
