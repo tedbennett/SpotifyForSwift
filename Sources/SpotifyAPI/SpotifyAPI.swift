@@ -67,33 +67,49 @@ public class SpotifyAPI {
     }
     
     private func authorise(completion: @escaping (Bool) -> Void) {
-        assert(authClient != nil, "Spotify manager not initialzed, call an authorisation handler before use")
-        authClient!.authorize(callback: {authParameters, error in
-            if authParameters != nil {
-                completion(true)
-                if self.hasUserAccess() {
-                    self.getOwnUserProfile { user, error in
-                        guard let user = user else {
-                            print(error.debugDescription)
-                            return
+        if hasUserAccess() {
+            authClient!.authorize(callback: {authParameters, error in
+                if authParameters != nil {
+                    completion(true)
+                    if self.hasUserAccess() {
+                        self.getOwnUserProfile { user, error in
+                            guard let user = user else {
+                                print(error.debugDescription)
+                                return
+                            }
+                            self.userId = user.id
                         }
-                        self.userId = user.id
                     }
                 }
-            }
-            else {
-                print("Authorization was canceled or went wrong: \(String(describing: error))")
-                if error?.description == "Refresh token revoked" {
-                    self.authClient!.forgetTokens()
+                else {
+                    print("Authorization was canceled or went wrong: \(String(describing: error))")
+                    if error?.description == "Refresh token revoked" {
+                        self.authClient!.forgetTokens()
+                    }
+                    completion(false)
                 }
-                completion(false)
-            }
-        })
+            })
+        } else if credentialsClient != nil {
+            credentialsClient!.authorize(callback: {authParameters, error in
+                if authParameters != nil {
+                    completion(true)
+                }
+                else {
+                    print("Authorization was canceled or went wrong: \(String(describing: error))")
+                    if error?.description == "Refresh token revoked" {
+                        self.credentialsClient!.forgetTokens()
+                    }
+                    completion(false)
+                }
+            })
+        }
+        else {
+            fatalError("Spotify API has not been initialised")
+        }
     }
     
-    public func isAuthorised() -> Bool {
-        assert(authClient != nil, "Spotify manager not initialzed, call an authorisation handler before use")
-        return authClient?.accessToken != nil
+    public func hasAccess() -> Bool {
+        return credentialsClient != nil
     }
     
     public func hasUserAccess() -> Bool {
@@ -159,8 +175,6 @@ extension SpotifyAPI {
     }
     
     func requestWithoutBodyResponse(url: URLRequest, completion: @escaping (Bool, Error?) -> Void) {
-        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
-        
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard error == nil else {
                 completion(false, error)
