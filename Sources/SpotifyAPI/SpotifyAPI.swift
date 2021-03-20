@@ -596,7 +596,7 @@ extension SpotifyAPI {
     public func getTrackFromIsrc(_ isrc: String, completion: @escaping ([Track], URL?, Error?) -> Void) {
         let type = SearchType[.track]
         do {
-            let url = try SpotifyAPI.manager.dd (for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])
+            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])
             singlePageRequest(url: url, key: "\(type)s", completion: completion)
         } catch let error {
             completion([], nil, error)
