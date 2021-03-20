@@ -12,12 +12,13 @@ public class SpotifyAPI {
     
     // MARK: - Auth
     
-    public func authoriseWithClientCredentials(clientId: String, secretId: String, useKeychain: Bool = true, completion: @escaping (Bool) -> Void) {
+    public func authoriseWithClientCredentials(clientId: String, secretId: String, redirectUris: [String], useKeychain: Bool = true, completion: @escaping (Bool) -> Void) {
         authClient = OAuth2CodeGrant(settings: [
             "client_id": clientId,
             "secret_id": secretId,
             "token_uri": tokenUrl,
             "grant_type": "client_credentials",
+            "redirect_uris": redirectUris,
             "keychain": useKeychain,
         ] as OAuth2JSON)
         authClient!.authorize(callback: {authParameters, error in
