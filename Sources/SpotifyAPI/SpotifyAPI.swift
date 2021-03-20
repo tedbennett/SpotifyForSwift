@@ -116,8 +116,6 @@ public class SpotifyAPI {
 
 extension SpotifyAPI {
     func request<Object: Codable>(url: URLRequest, completion: @escaping (Object?, Error?) -> Void) {
-        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
-        
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             if let response = response as? HTTPURLResponse {
                 if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
