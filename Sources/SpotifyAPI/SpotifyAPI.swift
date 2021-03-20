@@ -8,11 +8,33 @@ public class SpotifyAPI {
     
     private init() {}
     
-    private var userId = ""
+    private var userId: String?
     
     // MARK: - Auth
     
-    public func initialize(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true) {
+    public func authoriseWithClientCredentials(clientId: String, secretId: String, useKeychain: Bool = true, completion: @escaping (Bool) -> Void) {
+        authClient = OAuth2CodeGrant(settings: [
+            "client_id": clientId,
+            "secret_id": secretId,
+            "token_uri": tokenUrl,
+            "grant_type": "client_credentials",
+            "keychain": useKeychain,
+        ] as OAuth2JSON)
+        authClient!.authorize(callback: {authParameters, error in
+            if authParameters != nil {
+                completion(true)
+            }
+            else {
+                print("Authorization was canceled or went wrong: \(String(describing: error))")
+                if error?.description == "Refresh token revoked" {
+                    self.authClient!.forgetTokens()
+                }
+                completion(false)
+            }
+        })
+    }
+    
+    public func authoriseWithUser(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true, completion: @escaping (Bool) -> Void) {
         authClient = OAuth2CodeGrant(settings: [
             "client_id": clientId,
             "authorize_uri": authUrl,
@@ -22,10 +44,6 @@ public class SpotifyAPI {
             "scope": scopes.map{scope in scope.rawValue}.joined(separator: "%20"),
             "keychain": useKeychain,
         ] as OAuth2JSON)
-    }
-    
-    public func authorize(completion: @escaping (Bool) -> Void) {
-        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         authClient!.authorize(callback: {authParameters, error in
             if authParameters != nil {
                 completion(true)
@@ -47,9 +65,38 @@ public class SpotifyAPI {
         })
     }
     
+    private func authorise(completion: @escaping (Bool) -> Void) {
+        assert(authClient != nil, "Spotify manager not initialzed, call an authorisation handler before use")
+        authClient!.authorize(callback: {authParameters, error in
+            if authParameters != nil {
+                completion(true)
+                if self.hasUserAccess() {
+                    self.getOwnUserProfile { user, error in
+                        guard let user = user else {
+                            print(error.debugDescription)
+                            return
+                        }
+                        self.userId = user.id
+                    }
+                }
+            }
+            else {
+                print("Authorization was canceled or went wrong: \(String(describing: error))")
+                if error?.description == "Refresh token revoked" {
+                    self.authClient!.forgetTokens()
+                }
+                completion(false)
+            }
+        })
+    }
+    
     public func isAuthorised() -> Bool {
-        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
+        assert(authClient != nil, "Spotify manager not initialzed, call an authorisation handler before use")
         return authClient?.accessToken != nil
+    }
+    
+    public func hasUserAccess() -> Bool {
+        return userId != nil
     }
     
     public func forgetTokens() {
@@ -77,7 +124,7 @@ extension SpotifyAPI {
                     }
                     return
                 } else if response.statusCode == 401 {
-                    self.authorize { success in
+                    self.authorise { success in
                         if success {
                             self.request(url: url, completion: completion)
                         }
@@ -130,7 +177,7 @@ extension SpotifyAPI {
                         }
                         return
                     case 401:
-                        self.authorize { success in
+                        self.authorise { success in
                             if success {
                                 self.requestWithoutBodyResponse(url: url, completion: completion)
                             }
@@ -279,8 +326,10 @@ extension SpotifyAPI {
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
     public func getUsersPlaylists(id: String? = nil, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+        guard let id = id ?? userId else {
+            fatalError("Spotify manager not initialized, call initialize() before use")
+        }
         do {
-            let id = id ?? userId
             let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], queries: ["limit":"50"])
             paginatedRequest(url: url, completion: completion)
         } catch let error {
@@ -307,8 +356,10 @@ extension SpotifyAPI {
     }
     
     public func createPlaylist(userId: String?, name: String, description: String?, isPublic: Bool, collaborative: Bool, completion: @escaping (Playlist?, Error?) -> Void) {
+        guard let id = userId ?? self.userId else {
+            fatalError("Spotify manager not initialized, call initialize() before use")
+        }
         do {
-            let id = userId ?? self.userId
             var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], method: .post)
             
             url.httpBody = requestBody(from: ["name": name, "description": description, "public": isPublic, "collaborative": collaborative])
@@ -337,7 +388,10 @@ extension SpotifyAPI {
     }
     
     public func createPlaylist(userId: String? = nil, name: String, description: String, uris: [String], isPublic: Bool, collaborative: Bool, completion: @escaping (Bool, Error?) -> Void) {
-        createPlaylist(userId: userId, name: name, description: description, isPublic: isPublic, collaborative: collaborative) { playlist, error in
+        guard let id = userId ?? self.userId else {
+            fatalError("Spotify manager not initialized, call initialize() before use")
+        }
+        createPlaylist(userId: id, name: name, description: description, isPublic: isPublic, collaborative: collaborative) { playlist, error in
             guard let playlist = playlist else {
                 print(error.debugDescription)
                 return
@@ -542,7 +596,7 @@ extension SpotifyAPI {
     public func getTrackFromIsrc(_ isrc: String, completion: @escaping ([Track], URL?, Error?) -> Void) {
         let type = SearchType[.track]
         do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])
+            let url = try SpotifyAPI.manager.dd (for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])
             singlePageRequest(url: url, key: "\(type)s", completion: completion)
         } catch let error {
             completion([], nil, error)
