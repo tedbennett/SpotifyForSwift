@@ -124,14 +124,28 @@ public class SpotifyAPI {
     }
     
     public func handleRedirect(url: URL) {
-        //assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
-        if authClient == nil {
-            authClient = OAuth2CodeGrant(settings: [
-                "usePkce": true,
-                "keychain": true,
-            ] as OAuth2JSON)
-        }
+        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
         authClient!.handleRedirectURL(url)
+    }
+    
+    public func authoriseFromRedirectURL(_ url: URL, usePkce: Bool = true, useKeychain: Bool = true) -> Bool {
+        
+        guard let url = URLComponents(url: url, resolvingAgainstBaseURL: true), let code = url.queryItems?.first(where: { $0.name == "code" })?.value else {
+            return false
+        }
+        authClient = OAuth2CodeGrant(settings: [
+            "use_pkce": usePkce,
+            "keychain": useKeychain,
+        ] as OAuth2JSON)
+        authClient?.exchangeCodeForToken(code)
+        getOwnUserProfile { user, error in
+            guard let user = user else {
+                print(error.debugDescription)
+                return
+            }
+            self.userId = user.id
+        }
+        return true
     }
 }
 
