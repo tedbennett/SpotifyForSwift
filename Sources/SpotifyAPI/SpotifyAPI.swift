@@ -1,6 +1,5 @@
 import OAuth2
 import Foundation
-import UIKit
 
 public class SpotifyAPI {
     var authClient: OAuth2CodeGrant?
@@ -30,6 +29,38 @@ public class SpotifyAPI {
                 print("Authorization was canceled or went wrong: \(String(describing: error))")
                 if error?.description == "Refresh token revoked" {
                     self.credentialsClient!.forgetTokens()
+                }
+                completion(false)
+            }
+        })
+    }
+    
+    public func authoriseWithUser(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true, completion: @escaping (Bool) -> Void) {
+        authClient = OAuth2CodeGrant(settings: [
+            "client_id": clientId,
+            "authorize_uri": authUrl,
+            "token_uri": tokenUrl,
+            "redirect_uris": redirectUris,
+            "use_pkce": usePkce,
+            "scope": scopes.map{scope in scope.rawValue}.joined(separator: "%20"),
+            "keychain": useKeychain,
+        ] as OAuth2JSON)
+        
+        authClient!.authorize(callback: {authParameters, error in
+            if authParameters != nil {
+                completion(true)
+                self.getOwnUserProfile { user, error in
+                    guard let user = user else {
+                        print(error.debugDescription)
+                        return
+                    }
+                    self.userId = user.id
+                }
+            }
+            else {
+                print("Authorization was canceled or went wrong: \(String(describing: error))")
+                if error?.description == "Refresh token revoked" {
+                    self.authClient!.forgetTokens()
                 }
                 completion(false)
             }
