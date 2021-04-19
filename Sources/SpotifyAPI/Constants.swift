@@ -82,6 +82,8 @@ public enum ApiError: Error {
     case resourceDoesNotExist
     case expiredAccessToken
     case tooManyRequests
+    case noUserId
+    case unknown
 }
 
 extension SpotifyAPI {

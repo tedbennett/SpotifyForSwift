@@ -1,159 +1,172 @@
-import OAuth2
 import Foundation
+import KeychainSwift
 
 public class SpotifyAPI {
-    var authClient: OAuth2CodeGrant?
-    var credentialsClient: OAuth2ClientCredentials?
-    
     public static let manager = SpotifyAPI()
     
-    private init() {}
+    private init() {
+        _ = loadFromKeychain()
+    }
     
-    private var userId = ""
+    private var userId: String?
+    private var pkceParams: PkceParams?
+    private var auth: AuthParams?
     
     // MARK: - Auth
     
-    public func authoriseWithClientCredentials(clientId: String, secretId: String, useKeychain: Bool = true, completion: @escaping (Bool) -> Void) {
-        credentialsClient = OAuth2ClientCredentials(settings: [
+    public func getAuthUrl(clientId: String, scopes: [AuthScope], redirect: String) -> URL? {
+        let verifier = getVerifier()
+        
+        pkceParams = PkceParams(verifier: verifier, clientId: clientId, redirectUri: redirect)
+        
+        let challenge = getChallenge(verifier: verifier)
+        var components = URLComponents(string: baseUrl)!
+        
+        let queries = [
             "client_id": clientId,
-            "client_secret": secretId,
-            "token_uri": tokenUrl,
-            "grant_type": "client_credentials",
-            "keychain": useKeychain,
-        ] as OAuth2JSON)
-        credentialsClient!.authorize(callback: {authParameters, error in
-            if authParameters != nil {
-                completion(true)
-            }
-            else {
-                print("Authorization was canceled or went wrong: \(String(describing: error))")
-                if error?.description == "Refresh token revoked" {
-                    self.credentialsClient!.forgetTokens()
-                }
-                completion(false)
-            }
-        })
+            "redirect_uri": redirect,
+            "code_challenge_method": "S256",
+            "code_challenge": challenge,
+            "response_type": "code",
+            "scope": scopes.map{scope in scope.rawValue}.joined(separator: "%20")
+        ]
+        
+        components.queryItems = queries.map { key, value in
+            URLQueryItem(name: key, value: value)
+        }
+        
+        return components.url
     }
     
-    public func authoriseWithUser(clientId: String, redirectUris: [String], scopes: [AuthScope], usePkce: Bool = true, useKeychain: Bool = true, completion: @escaping (Bool) -> Void) {
-        authClient = OAuth2CodeGrant(settings: [
-            "client_id": clientId,
-            "authorize_uri": authUrl,
-            "token_uri": tokenUrl,
-            "redirect_uris": redirectUris,
-            "use_pkce": usePkce,
-            "scope": scopes.map{scope in scope.rawValue}.joined(separator: "%20"),
-            "keychain": useKeychain,
-        ] as OAuth2JSON)
+    public func handleRedirect(redirectUrl: URL, completion: @escaping (Bool) -> Void) {
+        guard let components = URLComponents(url: redirectUrl, resolvingAgainstBaseURL: true), let code = components.queryItems?.first(where: { $0.name == "code" })?.value,
+              let params = pkceParams else {
+            completion(false)
+            return
+        }
         
-        authClient!.authorize(callback: {authParameters, error in
-            if authParameters != nil {
-                completion(true)
-                self.getOwnUserProfile { user, error in
-                    guard let user = user else {
-                        print(error.debugDescription)
+        let headers = ["content-type": "application/x-www-form-urlencoded"]
+        
+        let postData = NSMutableData(data: "grant_type=authorization_code".data(using: String.Encoding.utf8)!)
+        postData.append("&client_id=\(params.clientId)".data(using: String.Encoding.utf8)!)
+        postData.append("&code_verifier=\(params.verifier)".data(using: String.Encoding.utf8)!)
+        postData.append("&code=\(code)".data(using: String.Encoding.utf8)!)
+        postData.append("&redirect_uri=\(params.redirectUri)".data(using: String.Encoding.utf8)!)
+        
+        let request = NSMutableURLRequest(url: URL(string: tokenUrl)!,
+                                          cachePolicy: .useProtocolCachePolicy,
+                                          timeoutInterval: 10.0)
+        request.httpMethod = HTTPMethod.post.rawValue
+        request.allHTTPHeaderFields = headers
+        request.httpBody = postData as Data
+        
+        URLSession.shared.dataTask(with: request as URLRequest) { (data, response, error) in
+            guard error == nil, let data = data else {
+                print(error.debugDescription)
+                completion(false)
+                return
+            }
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                self.auth = AuthParams(json: json)
+                
+                self.getOwnUserProfile { profile, error in
+                    guard let profile = profile else {
+                        completion(false)
                         return
                     }
-                    self.userId = user.id
-                }
-            }
-            else {
-                print("Authorization was canceled or went wrong: \(String(describing: error))")
-                if error?.description == "Refresh token revoked" {
-                    self.authClient!.forgetTokens()
-                }
-                completion(false)
-            }
-        })
-    }
-    
-    private func authorise(completion: @escaping (Bool) -> Void) {
-        if hasUserAccess() {
-            authClient!.authorize(callback: {authParameters, error in
-                if authParameters != nil {
-                    completion(true)
-                    if self.hasUserAccess() {
-                        self.getOwnUserProfile { user, error in
-                            guard let user = user else {
-                                print(error.debugDescription)
-                                return
-                            }
-                            self.userId = user.id
-                        }
-                    }
-                }
-                else {
-                    print("Authorization was canceled or went wrong: \(String(describing: error))")
-                    if error?.description == "Refresh token revoked" {
-                        self.authClient!.forgetTokens()
-                    }
-                    completion(false)
-                }
-            })
-        } else if credentialsClient != nil {
-            credentialsClient!.authorize(callback: {authParameters, error in
-                if authParameters != nil {
+                    self.userId = profile.id
+                    self.saveToKeychain()
                     completion(true)
                 }
-                else {
-                    print("Authorization was canceled or went wrong: \(String(describing: error))")
-                    if error?.description == "Refresh token revoked" {
-                        self.credentialsClient!.forgetTokens()
-                    }
-                    completion(false)
-                }
-            })
-        }
-        else {
-            fatalError("Spotify API has not been initialised")
-        }
-    }
-    
-    public func hasAccess() -> Bool {
-        return credentialsClient != nil
-    }
-    
-    public func hasUserAccess() -> Bool {
-        return authClient != nil
+            }
+            
+        }.resume()
     }
     
     public func forgetTokens() {
-        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
-        authClient!.forgetTokens()
-        userId = ""
+        pkceParams = nil
+        auth = nil
+        clearKeychain()
     }
     
-    public func handleRedirect(url: URL) {
-        assert(authClient != nil, "Spotify manager not initialzed, call initialize() before use")
-        authClient!.handleRedirectURL(url)
+    public func isAuthorised() -> Bool {
+        return auth != nil
     }
     
-    public func authoriseFromRedirectURL(_ url: URL, usePkce: Bool = true, useKeychain: Bool = true) -> Bool {
-        
-        guard let url = URLComponents(url: url, resolvingAgainstBaseURL: true), let code = url.queryItems?.first(where: { $0.name == "code" })?.value else {
+    private func saveToKeychain() {
+        guard let auth = auth, let userId = userId else {
+            return
+        }
+        let keychain = KeychainSwift()
+        keychain.set(auth.accessToken, forKey: "spotify-access-token")
+        keychain.set(auth.refreshToken, forKey: "spotify-refresh-token")
+        keychain.set("\(auth.expiry.timeIntervalSince1970)", forKey: "spotify-expiry")
+        keychain.set(userId, forKey: "spotify-user-id")
+    }
+    
+    private func loadFromKeychain() -> Bool {
+        let keychain = KeychainSwift()
+        guard let accessToken = keychain.get("spotify-access-token"),
+            let refreshToken = keychain.get("spotify-refresh-token"),
+            let expiry = keychain.get("spotify-expiry"),
+            let userId = keychain.get("spotify-user-id"),
+            let seconds = Int(expiry) else {
             return false
         }
-        authClient = OAuth2CodeGrant(settings: [
-            "use_pkce": usePkce,
-            "keychain": useKeychain,
-        ] as OAuth2JSON)
-        authClient?.exchangeCodeForToken(code)
-        getOwnUserProfile { user, error in
-            guard let user = user else {
-                print(error.debugDescription)
-                return
-            }
-            self.userId = user.id
-        }
+        
+        let expiresAt = Date(timeIntervalSince1970: TimeInterval(seconds))
+        
+        auth = AuthParams(accessToken: accessToken, refreshToken: refreshToken, expiry: expiresAt)
+        self.userId = userId
         return true
+    }
+    
+    private func clearKeychain() {
+        let keychain = KeychainSwift()
+        keychain.clear()
     }
 }
 
 // MARK: - Requests
 
 extension SpotifyAPI {
+    func refreshToken(completion: @escaping (Bool) -> Void) {
+        guard let auth = auth, let params = pkceParams else {
+            completion(false)
+            return
+        }
+        
+        let headers = ["content-type": "application/x-www-form-urlencoded"]
+        
+        let postData = NSMutableData(data: "grant_type=authorization_code".data(using: String.Encoding.utf8)!)
+        postData.append("&client_id=\(params.clientId)".data(using: String.Encoding.utf8)!)
+        postData.append("&grant_type=refresh_token".data(using: String.Encoding.utf8)!)
+        postData.append("&refresh_token=\(auth.refreshToken)".data(using: String.Encoding.utf8)!)
+        
+        let request = NSMutableURLRequest(url: URL(string: tokenUrl)!,
+                                          cachePolicy: .useProtocolCachePolicy,
+                                          timeoutInterval: 10.0)
+        request.httpMethod = HTTPMethod.post.rawValue
+        request.allHTTPHeaderFields = headers
+        request.httpBody = postData as Data
+        
+        URLSession.shared.dataTask(with: request as URLRequest) { (data, response, error) in
+            guard error == nil, let data = data else {
+                print(error.debugDescription)
+                completion(false)
+                return
+            }
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                self.auth = AuthParams(json: json)
+                completion(true)
+            }
+            
+        }.resume()
+    }
+    
     func request<Object: Codable>(url: URLRequest, completion: @escaping (Object?, Error?) -> Void) {
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
+        let signedUrl = getSignedUrl(from: url)
+        URLSession.shared.dataTask(with: signedUrl) { (data, response, error) in
             if let response = response as? HTTPURLResponse {
                 if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
@@ -161,7 +174,7 @@ extension SpotifyAPI {
                     }
                     return
                 } else if response.statusCode == 401 {
-                    self.authorise { success in
+                    self.refreshToken { success in
                         if success {
                             self.request(url: url, completion: completion)
                         }
@@ -196,7 +209,8 @@ extension SpotifyAPI {
     }
     
     func requestWithoutBodyResponse(url: URLRequest, completion: @escaping (Bool, Error?) -> Void) {
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
+        let signedUrl = getSignedUrl(from: url)
+        URLSession.shared.dataTask(with: signedUrl) { (data, response, error) in
             guard error == nil else {
                 completion(false, error)
                 return
@@ -212,7 +226,7 @@ extension SpotifyAPI {
                         }
                         return
                     case 401:
-                        self.authorise { success in
+                        self.refreshToken { success in
                             if success {
                                 self.requestWithoutBodyResponse(url: url, completion: completion)
                             }
@@ -226,7 +240,7 @@ extension SpotifyAPI {
                     case 404:
                         completion(false, ApiError.notFound)
                     default:
-                        completion(false, nil)
+                        completion(false, ApiError.unknown)
                 }
             } else {
                 completion(false, nil)
@@ -256,7 +270,7 @@ extension SpotifyAPI {
             var newObjects = objects
             newObjects.append(contentsOf: paginatedObjects.items)
             if let next = paginatedObjects.next {
-                let nextUrl = self.getAuthenticatedUrl(url: next, method: .get, userAccess: requiresUserAccess)
+                let nextUrl = URLRequest(url: next)
                 self.paginatedRequest(url: nextUrl, requiresUserAccess: requiresUserAccess, objects: newObjects, completion: completion)
             } else {
                 completion(newObjects, error)
@@ -280,38 +294,31 @@ extension SpotifyAPI {
 // MARK: - URL Handling
 
 extension SpotifyAPI {
-    func getUrlRequest(for paths: [String], method: HTTPMethod = .get, requiresUserAccess: Bool = false, queries: [String:String] = [:]) throws -> URLRequest  {
+    func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) -> URLRequest {
         var components = URLComponents(string: baseUrl)!
         components.queryItems = queries.map { key, value in
             URLQueryItem(name: key, value: value)
         }
         guard var url = components.url else {
-            throw ApiError.invalidUrl
+            fatalError("Failed to create url request")
         }
         
         paths.forEach { path in
             url.appendPathComponent(path)
         }
         
-        return getAuthenticatedUrl(url: url, method: method, userAccess: requiresUserAccess)
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = method.rawValue
+        
+        return urlRequest
     }
     
-    func getAuthenticatedUrl(url: URL, method: HTTPMethod, userAccess: Bool = false) -> URLRequest {
-        var request: URLRequest
-        if userAccess {
-            guard let client = authClient else {
-                fatalError("Spotify manager not initialized, call initialize() before use")
-            }
-            request = client.request(forURL: url)
-        } else {
-            guard let client = credentialsClient else {
-                fatalError("Spotify manager not initialized, call initialize() before use")
-            }
-            request = client.request(forURL: url)
+    func getSignedUrl(from url: URLRequest) -> URLRequest {
+        var signedUrl = url
+        if let auth = auth {
+            signedUrl.addValue("Bearer \(auth.accessToken)", forHTTPHeaderField: "Authorization")
         }
-        
-        request.httpMethod = method.rawValue
-        return request
+        return signedUrl
     }
     
     func requestBody(from json: [String: Any?]) -> Data {
@@ -335,12 +342,8 @@ extension SpotifyAPI {
 extension SpotifyAPI {
     
     public func getOwnUserProfile(completion: @escaping (UserPublic?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me]], requiresUserAccess: true)
-            request(url: url, completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me]])
+        request(url: url, completion: completion)
     }
 }
 
@@ -349,85 +352,67 @@ extension SpotifyAPI {
 extension SpotifyAPI {
     
     public func getPlaylist(id: String, completion: @escaping (Playlist?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id])
-            request(url: url, completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id])
+        request(url: url, completion: completion)
     }
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
     public func getOwnPlaylists(completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.playlists]], requiresUserAccess: true, queries: ["limit":"50"])
-            paginatedRequest(url: url, requiresUserAccess: true, completion: completion)
-        } catch let error {
-            completion([], error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.playlists]], queries: ["limit":"50"])
+        paginatedRequest(url: url, completion: completion)
     }
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
     public func getUsersPlaylists(id: String? = nil, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
-        do {
-            let id = id ?? userId
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], requiresUserAccess: true, queries: ["limit":"50"])
-            paginatedRequest(url: url, requiresUserAccess: true, completion: completion)
-        } catch let error {
-            completion([], error)
+        guard let id = id ?? userId else {
+            completion([], ApiError.noUserId)
+            return
         }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], queries: ["limit":"50"])
+        paginatedRequest(url: url, completion: completion)
     }
     
     public func getPlaylistsTracks(id: String, country: String, completion: @escaping ([PlaylistTrackWrapper], Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], queries: ["market": country, "limit": "50"])
-            paginatedRequest(url: url, completion: completion)
-        } catch let error {
-            completion([], error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], queries: ["market": country, "limit": "50"])
+        paginatedRequest(url: url, completion: completion)
     }
     
     public func getPlaylistImages(id: String, completion: @escaping ([Image]?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.images]])
-            request(url: url, completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.images]])
+        request(url: url, completion: completion)
     }
     
     public func createPlaylist(userId: String?, name: String, description: String?, isPublic: Bool, collaborative: Bool, completion: @escaping (Playlist?, Error?) -> Void) {
-        do {
-            let id = userId ?? self.userId
-            var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], method: .post, requiresUserAccess: true)
-            
-            url.httpBody = requestBody(from: ["name": name, "description": description, "public": isPublic, "collaborative": collaborative])
-            
-            request(url: url, completion: completion)
-        } catch let error {
-            completion(nil, error)
+        guard let id = userId ?? self.userId else {
+            completion(nil, ApiError.noUserId)
+            return
         }
+        var url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.users], id, Endpoints[.playlists]], method: .post)
+        
+        url.httpBody = requestBody(from: ["name": name, "description": description, "public": isPublic, "collaborative": collaborative])
+        
+        request(url: url, completion: completion)
+        
     }
     
     public func addTracksToPlaylist(id: String, uris: [String], completion: @escaping (Bool, Error?) -> Void) {
-        do {
-            var url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], method: .post, requiresUserAccess: true)
-            // limited to 100 tracks per request
+        var url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], method: .post)
+        // limited to 100 tracks per request
+        
+        let chunkedUris = uris.chunked(into: 100)
+        
+        for chunk in chunkedUris {
+            url.httpBody = requestBody(from: ["uris": chunk])
             
-            let chunkedUris = uris.chunked(into: 100)
-            
-            for chunk in chunkedUris {
-                url.httpBody = requestBody(from: ["uris": chunk])
-                
-                requestWithoutBodyResponse(url: url, completion: completion)
-            }
-        } catch let error {
-            completion(false, error)
+            requestWithoutBodyResponse(url: url, completion: completion)
         }
     }
     
     public func createPlaylist(userId: String? = nil, name: String, description: String, uris: [String], isPublic: Bool, collaborative: Bool, completion: @escaping (Bool, Error?) -> Void) {
-        let id = userId ?? self.userId
+        guard let id = userId ?? self.userId else {
+            completion(false, ApiError.noUserId)
+            return
+        }
         createPlaylist(userId: id, name: name, description: description, isPublic: isPublic, collaborative: collaborative) { playlist, error in
             guard let playlist = playlist else {
                 print(error.debugDescription)
@@ -454,21 +439,13 @@ extension Array {
 extension SpotifyAPI {
     
     public func getTrack(id: String, completion: @escaping (Track?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks], id])
-            request(url: url, completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks], id])
+        request(url: url, completion: completion)
     }
     
     public func getTracks(ids: [String], completion: @escaping ([Track?]?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks]], queries:  ["ids": ids.joined(separator: ",")])
-            arrayRequest(url: url, key: "tracks", completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.tracks]], queries:  ["ids": ids.joined(separator: ",")])
+        arrayRequest(url: url, key: "tracks", completion: completion)
     }
 }
 
@@ -477,30 +454,18 @@ extension SpotifyAPI {
 extension SpotifyAPI {
     
     public func getAlbum(id: String, completion: @escaping (Album?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id])
-            request(url: url, completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id])
+        request(url: url, completion: completion)
     }
     
     public func getAlbums(ids: [String], completion: @escaping ([Album?]?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums]], queries:  ["ids": ids.joined(separator: ",")])
-            arrayRequest(url: url, key: "albums", completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums]], queries:  ["ids": ids.joined(separator: ",")])
+        arrayRequest(url: url, key: "albums", completion: completion)
     }
     
     public func getAlbumsTracks(id: String, completion: @escaping ([TrackSimplified], Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id, Endpoints[.tracks]], queries: ["limit":"50"])
-            paginatedRequest(url: url, completion: completion)
-        } catch let error {
-            completion([], error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.albums], id, Endpoints[.tracks]], queries: ["limit":"50"])
+        paginatedRequest(url: url, completion: completion)
     }
 }
 
@@ -509,48 +474,28 @@ extension SpotifyAPI {
 extension SpotifyAPI {
     
     public func getArtist(id: String, completion: @escaping (Artist?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id])
-            request(url: url, completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id])
+        request(url: url, completion: completion)
     }
     
     public func getArtists(ids: [String], completion: @escaping ([Artist?]?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists]], queries:  ["ids": ids.joined(separator: ",")])
-            arrayRequest(url: url, key: "artists", completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists]], queries:  ["ids": ids.joined(separator: ",")])
+        arrayRequest(url: url, key: "artists", completion: completion)
     }
     
     public func getArtistsAlbums(id: String, completion: @escaping ([AlbumSimplified], Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.albums]], queries: ["limit":"50"])
-            paginatedRequest(url: url, completion: completion)
-        } catch let error {
-            completion([], error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.albums]], queries: ["limit":"50"])
+        paginatedRequest(url: url, completion: completion)
     }
     
     public func getArtistsTopTracks(id: String, country: String, completion: @escaping ([Track]?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.topTracks]], queries: ["market": country])
-            arrayRequest(url: url, key: "tracks", completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.topTracks]], queries: ["market": country])
+        arrayRequest(url: url, key: "tracks", completion: completion)
     }
     
     public func getArtistsRelatedArtists(id: String, completion: @escaping ([Artist]?, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.relatedArtists]])
-            arrayRequest(url: url, key: "artists", completion: completion)
-        } catch let error {
-            completion(nil, error)
-        }
+        let url =  SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.artists], id, Endpoints[.relatedArtists]])
+        arrayRequest(url: url, key: "artists", completion: completion)
     }
 }
 
@@ -560,42 +505,26 @@ extension SpotifyAPI {
     
     // requires user-library-read
     public func getLibraryAlbums(completion: @escaping ([SavedAlbum], Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], requiresUserAccess: true, queries: ["limit":"50"])
-            paginatedRequest(url: url, requiresUserAccess: true, completion: completion)
-        } catch let error {
-            completion([], error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], queries: ["limit":"50"])
+        paginatedRequest(url: url, completion: completion)
     }
     
     // requires user-library-read
     public func getLibraryTracks(completion: @escaping ([SavedTrack], Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], requiresUserAccess: true, queries: ["limit":"50"])
-            paginatedRequest(url: url, requiresUserAccess: true, completion: completion)
-        } catch let error {
-            completion([], error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], queries: ["limit":"50"])
+        paginatedRequest(url: url, completion: completion)
     }
     
     // requires user-library-modify
     public func addTracksToLibrary(ids: [String], completion: @escaping (Bool, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], method: .put, requiresUserAccess: true, queries: ["ids": ids.joined(separator: ",")])
-            requestWithoutBodyResponse(url: url, completion: completion)
-        } catch let error {
-            completion(false, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], method: .put, queries: ["ids": ids.joined(separator: ",")])
+        requestWithoutBodyResponse(url: url, completion: completion)
     }
     
     // requires user-library-modify
     public func addAlbumsToLibrary(ids: [String], completion: @escaping (Bool, Error?) -> Void) {
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], method: .put, requiresUserAccess: true, queries: ["ids": ids.joined(separator: ",")])
-            requestWithoutBodyResponse(url: url, completion: completion)
-        } catch let error {
-            completion(false, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], method: .put, queries: ["ids": ids.joined(separator: ",")])
+        requestWithoutBodyResponse(url: url, completion: completion)
     }
 }
 
@@ -622,22 +551,15 @@ extension SpotifyAPI {
             completion([], nil, ApiError.invalidSearchObject)
             return
         }
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": queryString, "type": type])
-            singlePageRequest(url: url, key: "\(type)s", completion: completion)
-        } catch let error {
-            completion([], nil, error)
-        }
+        
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": queryString, "type": type])
+        singlePageRequest(url: url, key: "\(type)s", completion: completion)
     }
     
     public func getTrackFromIsrc(_ isrc: String, completion: @escaping ([Track], URL?, Error?) -> Void) {
         let type = SearchType[.track]
-        do {
-            let url = try SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])
-            singlePageRequest(url: url, key: "\(type)s", completion: completion)
-        } catch let error {
-            completion([], nil, error)
-        }
+        let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.search]], queries: ["q": "isrc:\(isrc)", "type": type, "limit":"1"])
+        singlePageRequest(url: url, key: "\(type)s", completion: completion)
     }
 }
 
@@ -645,11 +567,7 @@ extension SpotifyAPI {
 
 extension SpotifyAPI {
     public func addTrackToQueue(uri: String, completion: @escaping (Bool, Error?) -> Void) {
-        do {
-            let url = try getUrlRequest(for: [Endpoints[.me], Endpoints[.player], Endpoints[.queue]], method: .post, requiresUserAccess: true, queries: ["uri": uri])
-            self.requestWithoutBodyResponse(url: url, completion: completion)
-        } catch let error {
-            completion(false, error)
-        }
+        let url = getUrlRequest(for: [Endpoints[.me], Endpoints[.player], Endpoints[.queue]], method: .post, queries: ["uri": uri])
+        requestWithoutBodyResponse(url: url, completion: completion)
     }
 }

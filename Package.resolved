@@ -2,12 +2,12 @@
   "object": {
     "pins": [
       {
-        "package": "OAuth2",
-        "repositoryURL": "https://github.com/p2/OAuth2.git",
+        "package": "KeychainSwift",
+        "repositoryURL": "https://github.com/evgenyneu/keychain-swift.git",
         "state": {
           "branch": null,
-          "revision": "b0c71466176f3d7a22e5da20532c01d78a661f1d",
-          "version": "5.2.0"
+          "revision": "96fb84f45a96630e7583903bd7e08cf095c7a7ef",
+          "version": "19.0.0"
         }
       }
     ]
