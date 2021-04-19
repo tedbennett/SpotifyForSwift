@@ -26,7 +26,6 @@ func getChallenge(verifier: String) -> String {
         CC_SHA256($0.baseAddress, CC_LONG(verifierData.count), &buffer)
     }
     let hash = Data(buffer)
-    print(hash)
     let challenge = hash.base64EncodedData()
     return String(decoding: challenge, as: UTF8.self)
         .replacingOccurrences(of: "+", with: "-")

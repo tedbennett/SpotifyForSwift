@@ -20,7 +20,7 @@ public class SpotifyAPI {
         pkceParams = PkceParams(verifier: verifier, clientId: clientId, redirectUri: redirect)
         
         let challenge = getChallenge(verifier: verifier)
-        var components = URLComponents(string: baseUrl)!
+        var components = URLComponents(string: authUrl)!
         
         let queries = [
             "client_id": clientId,
