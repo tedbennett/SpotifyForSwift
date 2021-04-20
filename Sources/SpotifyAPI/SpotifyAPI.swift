@@ -11,11 +11,7 @@ public class SpotifyAPI {
     private var userId: String?
     private var clientId: String?
     private var pkceParams: PkceParams?
-    private var auth: AuthParams? {
-        didSet {
-            saveToKeychain()
-        }
-    }
+    private var auth: AuthParams?
     
     // MARK: - Auth
     
@@ -81,6 +77,7 @@ public class SpotifyAPI {
                         return
                     }
                     self.userId = profile.id
+                    self.saveToKeychain()
                     completion(true)
                 }
             }
@@ -144,6 +141,7 @@ public class SpotifyAPI {
     
     private func clearKeychain() {
         KeychainSwift().clear()
+        saveToKeychain()
     }
 }
 
@@ -178,6 +176,7 @@ extension SpotifyAPI {
             }
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 self.auth = AuthParams(json: json)
+                self.saveToKeychain()
                 completion(true)
             }
             
