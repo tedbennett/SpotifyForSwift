@@ -73,18 +73,20 @@ enum SearchType: String {
     }
 }
 
-public enum ApiError: Error {
-    case notFound
-    case invalidScope
-    case invalidUrl
-    case invalidAccessToken
-    case invalidSearchObject
-    case notAuthorised
-    case resourceDoesNotExist
-    case expiredAccessToken
-    case tooManyRequests
-    case noUserId
-    case unknown
+extension SpotifyAPI {
+    public enum ApiError: Error {
+        case notFound
+        case invalidScope
+        case invalidUrl
+        case invalidAccessToken
+        case invalidSearchObject
+        case notAuthorised
+        case resourceDoesNotExist
+        case expiredAccessToken
+        case tooManyRequests
+        case noUserId
+        case unknown
+    }
 }
 
 extension SpotifyAPI {
