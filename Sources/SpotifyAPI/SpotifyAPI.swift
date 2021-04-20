@@ -123,7 +123,7 @@ public class SpotifyAPI {
             let refreshToken = keychain.get("spotify-refresh-token"),
             let expiry = keychain.get("spotify-expiry"),
             let userId = keychain.get("spotify-user-id"),
-            let seconds = Int(expiry) else {
+            let seconds = Double(expiry) else {
             return false
         }
         
