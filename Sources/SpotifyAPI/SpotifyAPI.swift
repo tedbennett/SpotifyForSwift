@@ -89,6 +89,9 @@ public class SpotifyAPI {
     }
     
     public func authorise(accessToken: String, refresh: String? = nil, expiry: Date) {
+        if auth != nil && refresh == nil {
+            return
+        }
         auth = AuthParams(accessToken: accessToken, refreshToken: refresh, expiry: expiry)
     }
     
