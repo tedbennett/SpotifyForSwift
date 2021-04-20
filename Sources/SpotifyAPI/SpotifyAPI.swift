@@ -9,6 +9,7 @@ public class SpotifyAPI {
     }
     
     private var userId: String?
+    private var clientId: String?
     private var pkceParams: PkceParams?
     private var auth: AuthParams? {
         didSet {
@@ -21,7 +22,8 @@ public class SpotifyAPI {
     public func getAuthUrl(clientId: String, scopes: [AuthScope], redirect: String) -> URL? {
         let verifier = getVerifier()
         
-        pkceParams = PkceParams(verifier: verifier, clientId: clientId, redirectUri: redirect)
+        pkceParams = PkceParams(verifier: verifier, redirectUri: redirect)
+        self.clientId = clientId
         
         let challenge = getChallenge(verifier: verifier)
         var components = URLComponents(string: authUrl)!
@@ -44,7 +46,7 @@ public class SpotifyAPI {
     
     public func handleRedirect(redirectUrl: URL, completion: @escaping (Bool) -> Void) {
         guard let components = URLComponents(url: redirectUrl, resolvingAgainstBaseURL: true), let code = components.queryItems?.first(where: { $0.name == "code" })?.value,
-              let params = pkceParams else {
+              let params = pkceParams, let clientId = clientId else {
             completion(false)
             return
         }
@@ -52,7 +54,7 @@ public class SpotifyAPI {
         let headers = ["content-type": "application/x-www-form-urlencoded"]
         
         let postData = NSMutableData(data: "grant_type=authorization_code".data(using: String.Encoding.utf8)!)
-        postData.append("&client_id=\(params.clientId)".data(using: String.Encoding.utf8)!)
+        postData.append("&client_id=\(clientId)".data(using: String.Encoding.utf8)!)
         postData.append("&code_verifier=\(params.verifier)".data(using: String.Encoding.utf8)!)
         postData.append("&code=\(code)".data(using: String.Encoding.utf8)!)
         postData.append("&redirect_uri=\(params.redirectUri)".data(using: String.Encoding.utf8)!)
@@ -105,7 +107,7 @@ public class SpotifyAPI {
     }
     
     private func saveToKeychain() {
-        guard let auth = auth, let userId = userId else {
+        guard let auth = auth, let userId = userId, let clientId = clientId else {
             return
         }
         let keychain = KeychainSwift()
@@ -115,6 +117,7 @@ public class SpotifyAPI {
         }
         keychain.set("\(auth.expiry.timeIntervalSince1970)", forKey: "spotify-expiry")
         keychain.set(userId, forKey: "spotify-user-id")
+        keychain.set(clientId, forKey: "spotify-client-id")
     }
     
     private func loadFromKeychain() -> Bool {
@@ -123,6 +126,7 @@ public class SpotifyAPI {
             let refreshToken = keychain.get("spotify-refresh-token"),
             let expiry = keychain.get("spotify-expiry"),
             let userId = keychain.get("spotify-user-id"),
+            let clientId = keychain.get("spotify-client-id"),
             let seconds = Double(expiry) else {
             return false
         }
@@ -131,12 +135,12 @@ public class SpotifyAPI {
         
         auth = AuthParams(accessToken: accessToken, refreshToken: refreshToken, expiry: expiresAt)
         self.userId = userId
+        self.clientId = clientId
         return true
     }
     
     private func clearKeychain() {
-        let keychain = KeychainSwift()
-        keychain.clear()
+        KeychainSwift().clear()
     }
 }
 
@@ -144,7 +148,7 @@ public class SpotifyAPI {
 
 extension SpotifyAPI {
     func refreshToken(completion: @escaping (Bool) -> Void) {
-        guard let auth = auth, let refresh = auth.refreshToken, let params = pkceParams else {
+        guard let auth = auth, let refresh = auth.refreshToken, let clientId = clientId else {
             completion(false)
             return
         }
@@ -152,7 +156,7 @@ extension SpotifyAPI {
         let headers = ["content-type": "application/x-www-form-urlencoded"]
         
         let postData = NSMutableData(data: "grant_type=authorization_code".data(using: String.Encoding.utf8)!)
-        postData.append("&client_id=\(params.clientId)".data(using: String.Encoding.utf8)!)
+        postData.append("&client_id=\(clientId)".data(using: String.Encoding.utf8)!)
         postData.append("&grant_type=refresh_token".data(using: String.Encoding.utf8)!)
         postData.append("&refresh_token=\(refresh)".data(using: String.Encoding.utf8)!)
         

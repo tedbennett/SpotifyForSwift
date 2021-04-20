@@ -9,7 +9,6 @@ import Foundation
 
 struct PkceParams {
     let verifier: String
-    let clientId: String
     let redirectUri: String
 }
 
