@@ -10,7 +10,11 @@ public class SpotifyAPI {
     
     private var userId: String?
     private var pkceParams: PkceParams?
-    private var auth: AuthParams?
+    private var auth: AuthParams? {
+        didSet {
+            saveToKeychain()
+        }
+    }
     
     // MARK: - Auth
     
@@ -75,12 +79,15 @@ public class SpotifyAPI {
                         return
                     }
                     self.userId = profile.id
-                    self.saveToKeychain()
                     completion(true)
                 }
             }
             
         }.resume()
+    }
+    
+    public func authorise(accessToken: String, refresh: String? = nil, expiry: Date) {
+        auth = AuthParams(accessToken: accessToken, refreshToken: refresh, expiry: expiry)
     }
     
     public func forgetTokens() {
@@ -99,7 +106,9 @@ public class SpotifyAPI {
         }
         let keychain = KeychainSwift()
         keychain.set(auth.accessToken, forKey: "spotify-access-token")
-        keychain.set(auth.refreshToken, forKey: "spotify-refresh-token")
+        if let refresh = auth.refreshToken {
+            keychain.set(refresh, forKey: "spotify-refresh-token")
+        }
         keychain.set("\(auth.expiry.timeIntervalSince1970)", forKey: "spotify-expiry")
         keychain.set(userId, forKey: "spotify-user-id")
     }
@@ -131,7 +140,7 @@ public class SpotifyAPI {
 
 extension SpotifyAPI {
     func refreshToken(completion: @escaping (Bool) -> Void) {
-        guard let auth = auth, let params = pkceParams else {
+        guard let auth = auth, let refresh = auth.refreshToken, let params = pkceParams else {
             completion(false)
             return
         }
@@ -141,7 +150,7 @@ extension SpotifyAPI {
         let postData = NSMutableData(data: "grant_type=authorization_code".data(using: String.Encoding.utf8)!)
         postData.append("&client_id=\(params.clientId)".data(using: String.Encoding.utf8)!)
         postData.append("&grant_type=refresh_token".data(using: String.Encoding.utf8)!)
-        postData.append("&refresh_token=\(auth.refreshToken)".data(using: String.Encoding.utf8)!)
+        postData.append("&refresh_token=\(refresh)".data(using: String.Encoding.utf8)!)
         
         let request = NSMutableURLRequest(url: URL(string: tokenUrl)!,
                                           cachePolicy: .useProtocolCachePolicy,
@@ -177,6 +186,8 @@ extension SpotifyAPI {
                     self.refreshToken { success in
                         if success {
                             self.request(url: url, completion: completion)
+                        } else {
+                            completion(nil, ApiError.expiredAccessToken)
                         }
                     }
                     return

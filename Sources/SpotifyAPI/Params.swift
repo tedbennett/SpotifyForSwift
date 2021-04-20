@@ -15,10 +15,10 @@ struct PkceParams {
 
 struct AuthParams {
     let accessToken: String
-    let refreshToken: String
+    let refreshToken: String?
     let expiry: Date
     
-    init(accessToken: String, refreshToken: String, expiry: Date) {
+    init(accessToken: String, refreshToken: String? = nil, expiry: Date) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         self.expiry = expiry
