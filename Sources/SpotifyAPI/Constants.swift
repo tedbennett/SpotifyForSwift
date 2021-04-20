@@ -79,6 +79,7 @@ public enum ApiError: Error {
     case invalidUrl
     case invalidAccessToken
     case invalidSearchObject
+    case notAuthorised
     case resourceDoesNotExist
     case expiredAccessToken
     case tooManyRequests

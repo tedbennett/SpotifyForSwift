@@ -100,6 +100,10 @@ public class SpotifyAPI {
         return auth != nil
     }
     
+    public func hasUserAccess() -> Bool {
+        return auth?.refreshToken != nil
+    }
+    
     private func saveToKeychain() {
         guard let auth = auth, let userId = userId else {
             return
@@ -369,12 +373,20 @@ extension SpotifyAPI {
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
     public func getOwnPlaylists(completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion([], ApiError.notAuthorised)
+            return
+        }
         let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.playlists]], queries: ["limit":"50"])
         paginatedRequest(url: url, completion: completion)
     }
     
     // needs playlist-read-private or playlist-read-collaborative for private/collaborative playlists
     public func getUsersPlaylists(id: String? = nil, completion: @escaping ([PlaylistSimplified], Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion([], ApiError.notAuthorised)
+            return
+        }
         guard let id = id ?? userId else {
             completion([], ApiError.noUserId)
             return
@@ -394,6 +406,10 @@ extension SpotifyAPI {
     }
     
     public func createPlaylist(userId: String?, name: String, description: String?, isPublic: Bool, collaborative: Bool, completion: @escaping (Playlist?, Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion(nil, ApiError.notAuthorised)
+            return
+        }
         guard let id = userId ?? self.userId else {
             completion(nil, ApiError.noUserId)
             return
@@ -407,6 +423,10 @@ extension SpotifyAPI {
     }
     
     public func addTracksToPlaylist(id: String, uris: [String], completion: @escaping (Bool, Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion(false, ApiError.notAuthorised)
+            return
+        }
         var url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.playlists], id, Endpoints[.tracks]], method: .post)
         // limited to 100 tracks per request
         
@@ -420,6 +440,10 @@ extension SpotifyAPI {
     }
     
     public func createPlaylist(userId: String? = nil, name: String, description: String, uris: [String], isPublic: Bool, collaborative: Bool, completion: @escaping (Bool, Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion(false, ApiError.notAuthorised)
+            return
+        }
         guard let id = userId ?? self.userId else {
             completion(false, ApiError.noUserId)
             return
@@ -516,24 +540,40 @@ extension SpotifyAPI {
     
     // requires user-library-read
     public func getLibraryAlbums(completion: @escaping ([SavedAlbum], Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion([], ApiError.notAuthorised)
+            return
+        }
         let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], queries: ["limit":"50"])
         paginatedRequest(url: url, completion: completion)
     }
     
     // requires user-library-read
     public func getLibraryTracks(completion: @escaping ([SavedTrack], Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion([], ApiError.notAuthorised)
+            return
+        }
         let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], queries: ["limit":"50"])
         paginatedRequest(url: url, completion: completion)
     }
     
     // requires user-library-modify
     public func addTracksToLibrary(ids: [String], completion: @escaping (Bool, Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion(false, ApiError.notAuthorised)
+            return
+        }
         let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.tracks]], method: .put, queries: ["ids": ids.joined(separator: ",")])
         requestWithoutBodyResponse(url: url, completion: completion)
     }
     
     // requires user-library-modify
     public func addAlbumsToLibrary(ids: [String], completion: @escaping (Bool, Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion(false, ApiError.notAuthorised)
+            return
+        }
         let url = SpotifyAPI.manager.getUrlRequest(for: [Endpoints[.me], Endpoints[.albums]], method: .put, queries: ["ids": ids.joined(separator: ",")])
         requestWithoutBodyResponse(url: url, completion: completion)
     }
@@ -578,6 +618,10 @@ extension SpotifyAPI {
 
 extension SpotifyAPI {
     public func addTrackToQueue(uri: String, completion: @escaping (Bool, Error?) -> Void) {
+        guard hasUserAccess() else {
+            completion(false, ApiError.notAuthorised)
+            return
+        }
         let url = getUrlRequest(for: [Endpoints[.me], Endpoints[.player], Endpoints[.queue]], method: .post, queries: ["uri": uri])
         requestWithoutBodyResponse(url: url, completion: completion)
     }
