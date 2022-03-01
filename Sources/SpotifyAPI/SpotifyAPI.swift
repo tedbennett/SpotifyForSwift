@@ -137,18 +137,18 @@ public class SpotifyAPI {
     private func loadFromKeychain() -> Bool {
         let keychain = KeychainSwift()
         guard let accessToken = keychain.get("spotify-access-token"),
-            let refreshToken = keychain.get("spotify-refresh-token"),
             let expiry = keychain.get("spotify-expiry"),
-            let userId = keychain.get("spotify-user-id"),
             let clientId = keychain.get("spotify-client-id"),
             let seconds = Double(expiry) else {
             return false
         }
-        
+        let refreshToken = keychain.get("spotify-refresh-token")
         let expiresAt = Date(timeIntervalSince1970: TimeInterval(seconds))
         
         auth = AuthParams(accessToken: accessToken, refreshToken: refreshToken, expiry: expiresAt)
-        self.userId = userId
+        if let userId = keychain.get("spotify-user-id") {
+            self.userId = userId
+        }
         self.clientId = clientId
         return true
     }
