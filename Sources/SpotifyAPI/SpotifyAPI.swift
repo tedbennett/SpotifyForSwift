@@ -85,12 +85,12 @@ public class SpotifyAPI {
         }.resume()
     }
     
-    public func authorise(accessToken: String, refresh: String? = nil, expiry: Date) {
+    public func authorise(accessToken: String, refresh: String? = nil, expiry: Date, clientId: String) {
         if auth != nil && refresh == nil {
             return
         }
         auth = AuthParams(accessToken: accessToken, refreshToken: refresh, expiry: expiry)
-        
+        self.clientId = clientId
         self.getOwnUserProfile { profile, error in
             guard let profile = profile else {
                 return
