@@ -91,13 +91,7 @@ public class SpotifyAPI {
         }
         auth = AuthParams(accessToken: accessToken, refreshToken: refresh, expiry: expiry)
         self.clientId = clientId
-        self.getOwnUserProfile { profile, error in
-            guard let profile = profile else {
-                return
-            }
-            self.userId = profile.id
-            self.saveToKeychain()
-        }
+        self.saveToKeychain()
     }
     
     public func forgetTokens() {
@@ -115,7 +109,7 @@ public class SpotifyAPI {
     }
     
     private func saveToKeychain() {
-        guard let auth = auth, let userId = userId, let clientId = clientId else {
+        guard let auth = auth, let clientId = clientId else {
             return
         }
         let keychain = KeychainSwift()
@@ -124,7 +118,9 @@ public class SpotifyAPI {
             keychain.set(refresh, forKey: "spotify-refresh-token")
         }
         keychain.set("\(auth.expiry.timeIntervalSince1970)", forKey: "spotify-expiry")
-        keychain.set(userId, forKey: "spotify-user-id")
+        if let userId = userId {
+            keychain.set(userId, forKey: "spotify-user-id")
+        }
         keychain.set(clientId, forKey: "spotify-client-id")
     }
     
