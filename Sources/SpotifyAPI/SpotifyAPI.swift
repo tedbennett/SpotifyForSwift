@@ -90,6 +90,14 @@ public class SpotifyAPI {
             return
         }
         auth = AuthParams(accessToken: accessToken, refreshToken: refresh, expiry: expiry)
+        
+        self.getOwnUserProfile { profile, error in
+            guard let profile = profile else {
+                return
+            }
+            self.userId = profile.id
+            self.saveToKeychain()
+        }
     }
     
     public func forgetTokens() {
